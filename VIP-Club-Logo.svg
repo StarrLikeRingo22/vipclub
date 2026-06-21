@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 150" width="520" height="150" role="img" aria-label="VIP Club — Private Rewards">
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F4E2B0"/>
+      <stop offset=".5" stop-color="#C9A24B"/>
+      <stop offset="1" stop-color="#9C7A2C"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3A2C30"/>
+      <stop offset="1" stop-color="#221A1E"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Emblem -->
+  <g transform="translate(15,15)">
+    <rect x="0" y="0" width="120" height="120" rx="34" fill="url(#ink)"/>
+    <rect x="7.5" y="7.5" width="105" height="105" rx="27.5" fill="none" stroke="url(#gold)" stroke-width="1.4" opacity=".85"/>
+    <!-- crown -->
+    <path d="M34 64 L38.5 41 L49.5 53.5 L60 31 L70.5 53.5 L81.5 41 L86 64 Z" fill="url(#gold)"/>
+    <rect x="33" y="63" width="54" height="10.5" rx="3" fill="url(#gold)"/>
+    <circle cx="38.5" cy="41" r="3.6" fill="url(#gold)"/>
+    <circle cx="81.5" cy="41" r="3.6" fill="url(#gold)"/>
+    <circle cx="60" cy="30.5" r="4.4" fill="#E8A0A8"/>
+    <circle cx="46" cy="68.3" r="2.3" fill="#221A1E"/>
+    <circle cx="60" cy="68.3" r="2.3" fill="#221A1E"/>
+    <circle cx="74" cy="68.3" r="2.3" fill="#221A1E"/>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(170,0)">
+    <text x="0" y="80" font-family="Georgia, 'Times New Roman', serif" font-size="60" font-weight="700" letter-spacing="5" fill="#3A2C30">VIP</text>
+    <text x="3" y="106" font-family="'Segoe UI', Arial, sans-serif" font-size="21" font-weight="600" letter-spacing="12" fill="#C9A24B">CLUB</text>
+    <text x="4" y="128" font-family="'Segoe UI', Arial, sans-serif" font-size="10.5" font-weight="600" letter-spacing="4.5" fill="#9a8488">PRIVATE&#160;&#160;REWARDS</text>
+  </g>
+</svg>

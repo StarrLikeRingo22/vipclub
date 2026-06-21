@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIP Club — Admin Console</title>
+<style>
+  :root{
+    --rose:#E8A0A8;--rose-deep:#C97B86;--rose-soft:#F7DCE0;--blush:#FBEEF0;
+    --gold:#C9A24B;--gold-soft:#E8D29A;
+    --ink:#3A2C30;--ink-soft:#8a7a7e;--line:#EFE3E5;
+    --bg:#FBF5F4;--white:#FFFFFF;--green:#5BA88A;--red:#D08086;--amber:#D9A95B;
+    --sidebar:#2B2024;--shadow:0 6px 22px rgba(180,120,130,.13);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  body{font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;background:var(--bg);color:var(--ink);}
+  .app{display:flex;min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{width:236px;background:var(--sidebar);color:#E9DDE0;flex-shrink:0;display:flex;flex-direction:column;padding:22px 14px;position:sticky;top:0;height:100vh;}
+  .logo{display:flex;align-items:center;gap:11px;padding:6px 10px 22px;}
+  .logo .crown{width:40px;height:40px;border-radius:12px;background:linear-gradient(135deg,#3A2C30,#1f1518);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.35),inset 0 0 0 1.3px rgba(201,162,75,.65);}
+  .logo b{font-size:17px;letter-spacing:.5px;display:block;}
+  .logo small{font-size:10px;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase;font-weight:700;}
+  .nav{display:flex;flex-direction:column;gap:3px;margin-top:6px;}
+  .nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;color:#C7B6BB;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;transition:.15s;}
+  .nav a svg{width:19px;height:19px;flex-shrink:0;}
+  .nav a:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .nav a.on{background:linear-gradient(135deg,var(--rose-deep),var(--rose));color:#fff;box-shadow:0 6px 16px rgba(201,123,134,.4);}
+  .nav a .badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:2px 7px;border-radius:999px;}
+  .sidefoot{margin-top:auto;padding:14px 10px 4px;border-top:1px solid rgba(255,255,255,.08);}
+  .sidefoot .row{display:flex;align-items:center;gap:10px;}
+  .sidefoot .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--rose),var(--rose-deep));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#fff;}
+  .sidefoot b{font-size:13px;color:#fff;display:block;}
+  .sidefoot span{font-size:11px;color:#9a868b;}
+
+  /* Main */
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .topbar{height:66px;background:var(--white);border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px;position:sticky;top:0;z-index:20;}
+  .topbar h1{font-size:19px;font-weight:800;}
+  .topbar .tools{display:flex;align-items:center;gap:12px;}
+  .search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:9px 14px;width:260px;color:var(--ink-soft);font-size:13px;}
+  .search input{border:none;background:transparent;outline:none;font-family:inherit;font-size:13px;width:100%;color:var(--ink);}
+  .iconbtn{width:40px;height:40px;border-radius:11px;border:1px solid var(--line);background:var(--white);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+  .iconbtn .dot{position:absolute;top:8px;right:9px;width:8px;height:8px;border-radius:50%;background:var(--red);border:2px solid #fff;}
+
+  .content{padding:26px 30px 50px;}
+  .section{display:none;}
+  .section.on{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  /* KPI cards */
+  .kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;}
+  .kpi{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:16px;box-shadow:var(--shadow);}
+  .kpi .ico{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:11px;}
+  .kpi b{font-size:23px;display:block;line-height:1;}
+  .kpi span{font-size:11px;color:var(--ink-soft);font-weight:600;text-transform:uppercase;letter-spacing:.3px;display:block;margin-top:5px;}
+  .kpi small{font-size:11px;font-weight:700;display:block;margin-top:7px;}
+  .up{color:var(--green);}.down{color:var(--red);}
+
+  .grid2{display:grid;grid-template-columns:1.6fr 1fr;gap:18px;margin-top:18px;}
+  .grid2b{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;}
+  .panel{background:var(--white);border:1px solid var(--line);border-radius:20px;padding:20px;box-shadow:var(--shadow);}
+  .panel h3{font-size:15px;margin-bottom:3px;}
+  .panel .sub{font-size:12px;color:var(--ink-soft);margin-bottom:16px;}
+  .phead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .phead h3{margin:0;}
+
+  /* Chart */
+  .chart{display:flex;align-items:flex-end;gap:14px;height:170px;padding-top:10px;}
+  .bar{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;justify-content:flex-end;}
+  .bar .fill{width:100%;max-width:42px;border-radius:9px 9px 4px 4px;background:linear-gradient(180deg,var(--rose),var(--rose-deep));transition:.4s;position:relative;}
+  .bar .fill.gold{background:linear-gradient(180deg,var(--gold-soft),var(--gold));}
+  .bar .val{font-size:11px;font-weight:700;color:var(--ink);}
+  .bar .lbl{font-size:11px;color:var(--ink-soft);font-weight:600;}
+
+  /* Donut legend */
+  .donut-wrap{display:flex;align-items:center;gap:18px;}
+  .legend{display:flex;flex-direction:column;gap:9px;flex:1;}
+  .legend .lg{display:flex;align-items:center;gap:9px;font-size:13px;}
+  .legend .sw{width:12px;height:12px;border-radius:4px;}
+  .legend b{margin-left:auto;}
+
+  /* Activity feed */
+  .feed{display:flex;flex-direction:column;}
+  .fi{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);}
+  .fi:last-child{border:none;}
+  .fi .fav{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+  .fi .ft{flex:1;}
+  .fi .ft b{font-size:13.5px;}
+  .fi .ft span{font-size:12px;color:var(--ink-soft);display:block;}
+  .fi .fw{font-size:11px;color:var(--ink-soft);white-space:nowrap;}
+
+  /* Table */
+  .tabs{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+  .tabs button{border:1px solid var(--line);background:var(--white);color:var(--ink-soft);font-weight:700;font-size:12.5px;padding:8px 15px;border-radius:999px;cursor:pointer;font-family:inherit;}
+  .tabs button.on{background:var(--rose-deep);color:#fff;border-color:var(--rose-deep);}
+  table{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);}
+  thead th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink-soft);font-weight:700;padding:14px 16px;background:#FCF6F7;border-bottom:1px solid var(--line);}
+  tbody td{padding:14px 16px;font-size:13.5px;border-bottom:1px solid var(--line);}
+  tbody tr{cursor:pointer;transition:.12s;}
+  tbody tr:hover{background:#FFF6F7;}
+  tbody tr:last-child td{border-bottom:none;}
+  .biz{display:flex;align-items:center;gap:11px;}
+  .biz .bav{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;font-size:13px;flex-shrink:0;}
+  .biz b{font-size:13.5px;display:block;}
+  .biz span{font-size:11.5px;color:var(--ink-soft);}
+  .st{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 11px;border-radius:999px;}
+  .st .d{width:7px;height:7px;border-radius:50%;}
+  .st.active{background:#E2F1EA;color:#3c7a62;}.st.active .d{background:var(--green);}
+  .st.trial{background:#FBEFD7;color:#8a6418;}.st.trial .d{background:var(--amber);}
+  .st.past{background:#FAE2E4;color:#a85055;}.st.past .d{background:var(--red);}
+  .st.churn{background:#ECE6E7;color:#8a7a7e;}.st.churn .d{background:#b0a2a5;}
+  .plan{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:7px;}
+  .plan.mvp{background:#EDE7F2;color:#6f5790;}
+  .plan.pro{background:var(--rose-soft);color:var(--rose-deep);}
+  .plan.analytics{background:var(--gold-soft);color:#7a5e1d;}
+
+  /* Detail modal */
+  .overlay{position:fixed;inset:0;background:rgba(43,32,36,.5);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center;z-index:60;padding:24px;}
+  .overlay.on{display:flex;}
+  .modal{background:var(--white);border-radius:22px;width:520px;max-width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 30px 70px rgba(80,50,60,.4);}
+  .mhead{padding:22px 24px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;}
+  .mhead .bav{width:50px;height:50px;border-radius:13px;font-size:18px;}
+  .mbody{padding:22px 24px;}
+  .mstat{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px;}
+  .mstat .s{background:var(--bg);border-radius:13px;padding:13px;text-align:center;}
+  .mstat .s b{font-size:19px;display:block;}
+  .mstat .s span{font-size:10.5px;color:var(--ink-soft);text-transform:uppercase;font-weight:700;letter-spacing:.3px;}
+  .drow{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px;}
+  .drow span{color:var(--ink-soft);}
+  .drow:last-child{border:none;}
+  .mactions{display:flex;gap:10px;margin-top:18px;}
+  .btn{border:none;cursor:pointer;font-family:inherit;font-weight:700;font-size:13.5px;padding:12px 16px;border-radius:12px;color:#fff;background:linear-gradient(135deg,var(--rose),var(--rose-deep));flex:1;}
+  .btn.ghost{background:var(--white);color:var(--rose-deep);border:1.5px solid var(--rose-soft);}
+  .btn.danger{background:var(--white);color:var(--red);border:1.5px solid #F3CDD0;}
+  .x{margin-left:auto;width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:18px;color:var(--ink-soft);}
+
+  /* SMS health bars */
+  .hbar{height:11px;border-radius:999px;background:#F0E4E6;overflow:hidden;margin:8px 0 4px;}
+  .hbar i{display:block;height:100%;border-radius:999px;}
+  .reason{display:flex;align-items:center;justify-content:space-between;font-size:13px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .reason:last-child{border:none;}
+
+  /* Templates */
+  .tpl{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow);margin-bottom:14px;}
+  .tpl .th{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .tpl .tag{font-size:11px;font-weight:700;padding:4px 10px;border-radius:7px;background:var(--rose-soft);color:var(--rose-deep);text-transform:uppercase;letter-spacing:.3px;}
+  .tpl textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px;font-family:inherit;font-size:13.5px;line-height:1.5;color:var(--ink);resize:vertical;min-height:74px;}
+  .tpl textarea:focus{outline:none;border-color:var(--rose);}
+  .merge{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px;}
+  .merge code{background:var(--bg);border:1px solid var(--line);font-size:11px;padding:3px 8px;border-radius:6px;color:var(--rose-deep);font-weight:600;cursor:pointer;}
+
+  .rep-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  .rep{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow);}
+  .rep .ico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:13px;}
+  .rep h4{font-size:15px;margin-bottom:5px;}
+  .rep p{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-bottom:14px;}
+  .rep b.big{font-size:26px;color:var(--rose-deep);display:block;margin-bottom:2px;}
+
+  .toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:13px 22px;border-radius:13px;font-size:13.5px;font-weight:600;box-shadow:0 12px 34px rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:.3s;z-index:90;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  .sectionhead{margin-bottom:18px;}
+  .sectionhead h2{font-size:20px;}
+  .sectionhead p{font-size:13px;color:var(--ink-soft);margin-top:3px;}
+
+  @media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(3,1fr);}.grid2{grid-template-columns:1fr;}.rep-grid{grid-template-columns:1fr;}}
+  @media(max-width:760px){.sidebar{display:none;}.kpi-grid{grid-template-columns:repeat(2,1fr);}.grid2b{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="crown"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 15.5 L5.5 8 L9 11.5 L12 5.5 L15 11.5 L18.5 8 L20 15.5 Z" fill="#E8D29A"/><rect x="4" y="15.3" width="16" height="2.5" rx="0.7" fill="#E8D29A"/><circle cx="12" cy="5.3" r="1.4" fill="#E8A0A8"/></svg></div>
+      <div><b>VIP Club</b><small>Admin Console</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <a class="on" data-s="overview" onclick="go('overview',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="5" rx="1.5"/><rect x="13" y="10" width="8" height="11" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/></svg>Overview</a>
+      <a data-s="businesses" onclick="go('businesses',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-5h6v5"/></svg>Businesses</a>
+      <a data-s="billing" onclick="go('billing',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>Billing &amp; Plans</a>
+      <a data-s="sms" onclick="go('sms',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>SMS Health<span class="badge">3</span></a>
+      <a data-s="templates" onclick="go('templates',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H7l-3 3z"/></svg>Templates</a>
+      <a data-s="reports" onclick="go('reports',this)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5M4 19h16M8 16v-5M12 16V8M16 16v-9"/></svg>Reports</a>
+    </nav>
+    <div class="sidefoot">
+      <div class="row"><div class="av">MO</div><div><b>Mo · Platform Admin</b><span>mo@morealtyteam.com</span></div></div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <h1 id="pageTitle">Platform Overview</h1>
+      <div class="tools">
+        <div class="search"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg><input placeholder="Search businesses, owners…"></div>
+        <div class="iconbtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8a7a7e" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><span class="dot"></span></div>
+        <div class="iconbtn" style="font-weight:800;color:var(--rose-deep);" title="Add business" onclick="toast('Owner onboarding wizard — create a new salon account')">＋</div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== OVERVIEW ===== -->
+      <section class="section on" id="overview">
+        <div class="kpi-grid">
+          <div class="kpi"><div class="ico" style="background:var(--rose-soft);">🏪</div><b>24</b><span>Businesses</span><small class="up">▲ 3 this month</small></div>
+          <div class="kpi"><div class="ico" style="background:#E2F1EA;">✅</div><b>21</b><span>Active subs</span><small class="up">88% active</small></div>
+          <div class="kpi"><div class="ico" style="background:var(--gold-soft);">💳</div><b>$3,816</b><span>MRR</span><small class="up">▲ 12% MoM</small></div>
+          <div class="kpi"><div class="ico" style="background:var(--rose-soft);">👥</div><b>7,480</b><span>VIP members</span><small class="up">▲ 612 this mo</small></div>
+          <div class="kpi"><div class="ico" style="background:#EDE7F2;">✉️</div><b>18,240</b><span>SMS this month</span><small class="up">▲ 9%</small></div>
+          <div class="kpi"><div class="ico" style="background:#E2F1EA;">📶</div><b>98.4%</b><span>Delivery rate</span><small class="down">3 numbers flagged</small></div>
+        </div>
+
+        <div class="grid2">
+          <div class="panel">
+            <div class="phead"><div><h3>Monthly recurring revenue</h3><div class="sub">Last 6 months · all plans</div></div><span class="st active"><span class="d"></span>Growing</span></div>
+            <div class="chart" id="mrrChart"></div>
+          </div>
+          <div class="panel">
+            <h3>Plan distribution</h3>
+            <div class="sub">Across 24 businesses</div>
+            <div class="donut-wrap">
+              <div id="donut"></div>
+              <div class="legend">
+                <div class="lg"><span class="sw" style="background:#8C6FB0;"></span>MVP · $99 <b>9</b></div>
+                <div class="lg"><span class="sw" style="background:var(--rose-deep);"></span>Pro · $199 <b>8</b></div>
+                <div class="lg"><span class="sw" style="background:var(--gold);"></span>Analytics · $299 <b>4</b></div>
+                <div class="lg"><span class="sw" style="background:var(--amber);"></span>Trial <b>3</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid2" style="grid-template-columns:1fr 1fr;">
+          <div class="panel">
+            <h3>Recent activity</h3>
+            <div class="sub">Live across the platform</div>
+            <div class="feed">
+              <div class="fi"><div class="fav" style="background:#E2F1EA;">🏪</div><div class="ft"><b>New business onboarded</b><span>Velvet Brow · Pro plan</span></div><span class="fw">12m ago</span></div>
+              <div class="fi"><div class="fav" style="background:var(--gold-soft);">💳</div><div class="ft"><b>Payment received</b><span>Polished Nails · $199</span></div><span class="fw">1h ago</span></div>
+              <div class="fi"><div class="fav" style="background:#FAE2E4;">⚠️</div><div class="ft"><b>SMS failures spiking</b><span>The Gent's Room · 14 failed sends</span></div><span class="fw">3h ago</span></div>
+              <div class="fi"><div class="fav" style="background:var(--rose-soft);">👥</div><div class="ft"><b>612 new VIP signups</b><span>Platform-wide this month</span></div><span class="fw">Today</span></div>
+              <div class="fi"><div class="fav" style="background:#FBEFD7;">⏳</div><div class="ft"><b>Trial ending soon</b><span>Serenity Spa · 3 days left</span></div><span class="fw">Today</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Needs attention</h3>
+            <div class="sub">Items for you to act on</div>
+            <div class="feed">
+              <div class="fi" onclick="openBiz(5)" style="cursor:pointer;"><div class="fav" style="background:#FAE2E4;">💳</div><div class="ft"><b>Past-due account</b><span>The Gent's Room · $99 failed</span></div><span class="st past"><span class="d"></span>Past due</span></div>
+              <div class="fi" onclick="go('sms',document.querySelector('[data-s=sms]'))" style="cursor:pointer;"><div class="fav" style="background:#FAE2E4;">📵</div><div class="ft"><b>3 sender numbers flagged</b><span>Delivery below 95%</span></div><span class="st past"><span class="d"></span>Review</span></div>
+              <div class="fi" onclick="openBiz(4)" style="cursor:pointer;"><div class="fav" style="background:#FBEFD7;">⏳</div><div class="ft"><b>2 trials ending this week</b><span>Serenity Spa, Pawfect Grooming</span></div><span class="st trial"><span class="d"></span>Convert</span></div>
+              <div class="fi"><div class="fav" style="background:#ECE6E7;">📉</div><div class="ft"><b>1 churn this month</b><span>Inkwell Tattoo · cancelled</span></div><span class="st churn"><span class="d"></span>Churned</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== BUSINESSES ===== -->
+      <section class="section" id="businesses">
+        <div class="sectionhead"><h2>Businesses</h2><p>Every salon on VIP Club. Click any row to drill in, troubleshoot, or manage their subscription.</p></div>
+        <div class="tabs" id="bizTabs">
+          <button class="on" onclick="filterBiz('all',this)">All · 24</button>
+          <button onclick="filterBiz('active',this)">Active · 21</button>
+          <button onclick="filterBiz('trial',this)">Trial · 3</button>
+          <button onclick="filterBiz('past',this)">Past due · 1</button>
+          <button onclick="filterBiz('churn',this)">Churned · 1</button>
+        </div>
+        <table>
+          <thead><tr><th>Business</th><th>Plan</th><th>Status</th><th>Members</th><th>Visits</th><th>SMS / mo</th><th>MRR</th><th>Last active</th></tr></thead>
+          <tbody id="bizBody"></tbody>
+        </table>
+      </section>
+
+      <!-- ===== BILLING ===== -->
+      <section class="section" id="billing">
+        <div class="sectionhead"><h2>Billing &amp; Plans</h2><p>Recurring revenue, plan mix, and accounts needing attention.</p></div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+          <div class="kpi"><div class="ico" style="background:var(--gold-soft);">💳</div><b>$3,816</b><span>MRR</span><small class="up">▲ 12% MoM</small></div>
+          <div class="kpi"><div class="ico" style="background:#E2F1EA;">📅</div><b>$45,792</b><span>ARR (run-rate)</span><small class="up">projected</small></div>
+          <div class="kpi"><div class="ico" style="background:var(--rose-soft);">🧾</div><b>$197</b><span>Avg revenue / acct</span><small class="muted">blended</small></div>
+          <div class="kpi"><div class="ico" style="background:#FAE2E4;">📉</div><b>4.2%</b><span>Monthly churn</span><small class="down">1 cancelled</small></div>
+        </div>
+        <div class="grid2b">
+          <div class="panel">
+            <h3>Recent payments</h3><div class="sub">Last 5 invoices</div>
+            <div class="feed">
+              <div class="fi"><div class="fav" style="background:#E2F1EA;">✅</div><div class="ft"><b>Polished Nails</b><span>Pro · $199.00</span></div><span class="fw">Paid · 1h ago</span></div>
+              <div class="fi"><div class="fav" style="background:#E2F1EA;">✅</div><div class="ft"><b>Glow Skin Studio</b><span>Analytics · $299.00</span></div><span class="fw">Paid · 5h ago</span></div>
+              <div class="fi"><div class="fav" style="background:#E2F1EA;">✅</div><div class="ft"><b>Bella Beauty Studio</b><span>Pro · $199.00</span></div><span class="fw">Paid · 1d ago</span></div>
+              <div class="fi"><div class="fav" style="background:#FAE2E4;">⚠️</div><div class="ft"><b>The Gent's Room</b><span>MVP · $99.00</span></div><span class="st past"><span class="d"></span>Failed</span></div>
+              <div class="fi"><div class="fav" style="background:#E2F1EA;">✅</div><div class="ft"><b>Mane Attraction</b><span>MVP · $99.00</span></div><span class="fw">Paid · 2d ago</span></div>
+            </div>
+          </div>
+          <div class="panel">
+            <h3>Revenue by plan</h3><div class="sub">Monthly contribution</div>
+            <div style="margin-top:6px;">
+              <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;"><span>Analytics · 4 × $299</span><b>$1,196</b></div>
+              <div class="hbar"><i style="width:31%;background:linear-gradient(90deg,var(--gold-soft),var(--gold));"></i></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-top:12px;"><span>Pro · 8 × $199</span><b>$1,592</b></div>
+              <div class="hbar"><i style="width:42%;background:linear-gradient(90deg,var(--rose),var(--rose-deep));"></i></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-top:12px;"><span>MVP · 9 × $99</span><b>$891</b></div>
+              <div class="hbar"><i style="width:23%;background:linear-gradient(90deg,#B79AD4,#8C6FB0);"></i></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;font-weight:600;margin-top:12px;color:var(--ink-soft);"><span>Trials · 3 × $0</span><b>$0</b></div>
+              <div class="hbar"><i style="width:4%;background:var(--amber);"></i></div>
+              <div style="border-top:1px solid var(--line);margin-top:16px;padding-top:12px;display:flex;justify-content:space-between;font-weight:800;"><span>Total MRR</span><b style="color:var(--rose-deep);">$3,816</b></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== SMS HEALTH ===== -->
+      <section class="section" id="sms">
+        <div class="sectionhead"><h2>SMS Health</h2><p>Twilio deliverability across all businesses — catch problems before owners notice.</p></div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);">
+          <div class="kpi"><div class="ico" style="background:#EDE7F2;">✉️</div><b>18,240</b><span>Sent (30d)</span><small class="muted">all businesses</small></div>
+          <div class="kpi"><div class="ico" style="background:#E2F1EA;">📬</div><b>17,948</b><span>Delivered</span><small class="up">98.4%</small></div>
+          <div class="kpi"><div class="ico" style="background:#FAE2E4;">⚠️</div><b>292</b><span>Failed</span><small class="down">1.6%</small></div>
+          <div class="kpi"><div class="ico" style="background:#FBEFD7;">🚫</div><b>84</b><span>Opt-outs (STOP)</span><small class="muted">auto-removed</small></div>
+        </div>
+        <div class="grid2b">
+          <div class="panel">
+            <h3>Failures by reason</h3><div class="sub">Where the 292 failed sends went</div>
+            <div style="margin-top:6px;">
+              <div class="reason"><span>Invalid / disconnected number</span><b>142</b></div>
+              <div class="reason"><span>Carrier blocked / filtered</span><b>88</b></div>
+              <div class="reason"><span>Unsubscribed before send</span><b>62</b></div>
+            </div>
+            <div style="margin-top:14px;font-size:12px;color:var(--ink-soft);line-height:1.5;">Invalid numbers are flagged in Airtable for the owner to fix at next visit. Carrier blocks are retried on a backup route.</div>
+          </div>
+          <div class="panel">
+            <h3>Sender numbers needing review</h3><div class="sub">Delivery below 95%</div>
+            <div class="feed">
+              <div class="fi"><div class="fav" style="background:#FAE2E4;">📵</div><div class="ft"><b>The Gent's Room</b><span>+1 (415) 555-0„· 91.2% delivered</span></div><span class="st past"><span class="d"></span>91%</span></div>
+              <div class="fi"><div class="fav" style="background:#FBEFD7;">📶</div><div class="ft"><b>Pawfect Grooming</b><span>+1 (628) 555-0· · 93.8% delivered</span></div><span class="st trial"><span class="d"></span>94%</span></div>
+              <div class="fi"><div class="fav" style="background:#FBEFD7;">📶</div><div class="ft"><b>Zen Massage</b><span>+1 (510) 555-0· · 94.1% delivered</span></div><span class="st trial"><span class="d"></span>94%</span></div>
+            </div>
+            <button class="btn ghost" style="margin-top:14px;width:100%;" onclick="toast('Opening Twilio troubleshooting for flagged numbers')">Troubleshoot flagged numbers</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== TEMPLATES ===== -->
+      <section class="section" id="templates">
+        <div class="sectionhead"><h2>SMS Templates</h2><p>Default message templates applied to every business. Edit once, roll out platform-wide. Tap a merge tag to insert it.</p></div>
+        <div class="tpl">
+          <div class="th"><b>Welcome message</b><span class="tag">On signup</span></div>
+          <textarea>Welcome to the VIP Club, {first_name}! 💕 You're officially in. Here's your VIP pass — show it at checkout to earn rewards: {pass_link}</textarea>
+          <div class="merge"><code onclick="toast('Inserted {first_name}')">{first_name}</code><code onclick="toast('Inserted {salon_name}')">{salon_name}</code><code onclick="toast('Inserted {pass_link}')">{pass_link}</code></div>
+        </div>
+        <div class="tpl">
+          <div class="th"><b>Rebooking reminder</b><span class="tag">When due</span></div>
+          <textarea>You're probably due for a fresh look 👀 You're getting closer to your next VIP reward. Book here: {booking_link}</textarea>
+          <div class="merge"><code onclick="toast('Inserted {first_name}')">{first_name}</code><code onclick="toast('Inserted {booking_link}')">{booking_link}</code><code onclick="toast('Inserted {reward_progress}')">{reward_progress}</code></div>
+        </div>
+        <div class="tpl">
+          <div class="th"><b>Reward ready</b><span class="tag">At 5/5</span></div>
+          <textarea>🎁 Reward unlocked, {first_name}! You've earned a free service at {salon_name}. Show your VIP pass on your next visit to redeem.</textarea>
+          <div class="merge"><code onclick="toast('Inserted {first_name}')">{first_name}</code><code onclick="toast('Inserted {salon_name}')">{salon_name}</code><code onclick="toast('Inserted {reward_name}')">{reward_name}</code></div>
+        </div>
+        <div class="tpl">
+          <div class="th"><b>Slow-day reactivation</b><span class="tag">Campaign</span></div>
+          <textarea>VIP offer this week 💕 {offer} at {salon_name}. A few spots just opened — text us back to book! Reply STOP to opt out.</textarea>
+          <div class="merge"><code onclick="toast('Inserted {offer}')">{offer}</code><code onclick="toast('Inserted {salon_name}')">{salon_name}</code><code onclick="toast('Inserted {booking_link}')">{booking_link}</code></div>
+        </div>
+        <button class="btn" style="max-width:220px;" onclick="toast('Templates saved & rolled out to all 24 businesses ✓')">Save &amp; roll out</button>
+      </section>
+
+      <!-- ===== REPORTS ===== -->
+      <section class="section" id="reports">
+        <div class="sectionhead"><h2>Reports</h2><p>The numbers that prove VIP Club works — for your records and for selling to new owners.</p></div>
+        <div class="rep-grid">
+          <div class="rep"><div class="ico" style="background:var(--rose-soft);">📈</div><b class="big">+38%</b><h4>Avg repeat-visit lift</h4><p>Across active businesses since joining VIP Club, vs their pre-launch baseline.</p><button class="btn ghost" style="width:100%;" onclick="toast('Exporting Retention Impact report (PDF)')">Export PDF</button></div>
+          <div class="rep"><div class="ico" style="background:var(--gold-soft);">💰</div><b class="big">$214K</b><h4>Revenue recovered</h4><p>Estimated bookings driven by reminders &amp; reactivation campaigns, platform-wide, this year.</p><button class="btn ghost" style="width:100%;" onclick="toast('Exporting Revenue Recovered report (CSV)')">Export CSV</button></div>
+          <div class="rep"><div class="ico" style="background:#E2F1EA;">🏆</div><b class="big">Polished Nails</b><h4>Top performer</h4><p>Highest repeat rate (74%) and most rewards redeemed this quarter.</p><button class="btn ghost" style="width:100%;" onclick="toast('Opening business leaderboard')">View leaderboard</button></div>
+          <div class="rep"><div class="ico" style="background:#EDE7F2;">👥</div><b class="big">7,480</b><h4>Total VIP members</h4><p>Cumulative customers onboarded via QR across all businesses.</p><button class="btn ghost" style="width:100%;" onclick="toast('Exporting Member Growth report')">Export</button></div>
+          <div class="rep"><div class="ico" style="background:var(--rose-soft);">✉️</div><b class="big">214K</b><h4>Messages delivered</h4><p>Welcome, reminder, reward and campaign texts sent all-time at 98%+ delivery.</p><button class="btn ghost" style="width:100%;" onclick="toast('Exporting SMS Volume report')">Export</button></div>
+          <div class="rep"><div class="ico" style="background:#FBEFD7;">🔁</div><b class="big">47</b><h4>Win-backs / mo</h4><p>Inactive clients who returned after a reactivation campaign, on average.</p><button class="btn ghost" style="width:100%;" onclick="toast('Exporting Reactivation report')">Export</button></div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- Business detail modal -->
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeBiz()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const PAGE_TITLES={overview:'Platform Overview',businesses:'Businesses',billing:'Billing & Plans',sms:'SMS Health',templates:'SMS Templates',reports:'Reports'};
+
+  function go(id, el){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
+    document.getElementById(id).classList.add('on');
+    document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('on'));
+    const link = el && el.dataset && el.dataset.s ? el : document.querySelector('.nav a[data-s='+id+']');
+    if(link) link.classList.add('on');
+    document.getElementById('pageTitle').textContent=PAGE_TITLES[id]||'';
+    window.scrollTo(0,0);
+  }
+
+  // ---- Data ----
+  const BIZ=[
+    {n:'Bella Beauty Studio',t:'Hair Salon',init:'BB',c:'#E8A0A8',plan:'pro',status:'active',mem:312,vis:1204,sms:1480,mrr:199,last:'2h ago',owner:'Bella Nguyen',phone:'+1 (415) 555-0147',since:'Mar 2026'},
+    {n:'Fade & Co Barbershop',t:'Barbershop',init:'FC',c:'#8C6FB0',plan:'mvp',status:'active',mem:188,vis:940,sms:760,mrr:99,last:'5h ago',owner:'Marcus Reid',phone:'+1 (415) 555-0188',since:'Feb 2026'},
+    {n:'Lush Lash Bar',t:'Lash Studio',init:'LL',c:'#C97B86',plan:'analytics',status:'active',mem:274,vis:610,sms:980,mrr:299,last:'1h ago',owner:'Priya Shah',phone:'+1 (628) 555-0102',since:'Jan 2026'},
+    {n:'Serenity Spa',t:'Day Spa',init:'SS',c:'#5BA88A',plan:'pro',status:'trial',mem:96,vis:120,sms:210,mrr:0,last:'1d ago',owner:'Hana Ito',phone:'+1 (510) 555-0166',since:'Jun 2026'},
+    {n:"The Gent's Room",t:'Barbershop',init:'GR',c:'#D08086',plan:'mvp',status:'past',mem:145,vis:700,sms:520,mrr:99,last:'3h ago',owner:'Tony Bianchi',phone:'+1 (415) 555-0133',since:'Dec 2025'},
+    {n:'Glow Skin Studio',t:'Med Spa',init:'GS',c:'#C9A24B',plan:'analytics',status:'active',mem:358,vis:880,sms:1240,mrr:299,last:'5h ago',owner:'Dr. Elise Park',phone:'+1 (628) 555-0119',since:'Nov 2025'},
+    {n:'Polished Nails',t:'Nail Salon',init:'PN',c:'#E8A0A8',plan:'pro',status:'active',mem:410,vis:1520,sms:1810,mrr:199,last:'40m ago',owner:'Linh Tran',phone:'+1 (415) 555-0151',since:'Oct 2025'},
+    {n:'Mane Attraction',t:'Hair Salon',init:'MA',c:'#B79AD4',plan:'mvp',status:'active',mem:220,vis:1010,sms:870,mrr:99,last:'2d ago',owner:'Carla Mendes',phone:'+1 (510) 555-0172',since:'Mar 2026'},
+    {n:'Velvet Brow',t:'Brow Studio',init:'VB',c:'#C97B86',plan:'pro',status:'active',mem:167,vis:540,sms:610,mrr:199,last:'12m ago',owner:'Sofia Russo',phone:'+1 (628) 555-0144',since:'Jun 2026'},
+    {n:'Zen Massage',t:'Massage',init:'ZM',c:'#5BA88A',plan:'pro',status:'active',mem:132,vis:410,sms:480,mrr:199,last:'6h ago',owner:'Ken Watanabe',phone:'+1 (510) 555-0190',since:'Apr 2026'},
+    {n:'Pawfect Grooming',t:'Pet Grooming',init:'PG',c:'#D9A95B',plan:'mvp',status:'trial',mem:54,vis:60,sms:90,mrr:0,last:'1d ago',owner:'Jess Allen',phone:'+1 (628) 555-0177',since:'Jun 2026'},
+    {n:'Inkwell Tattoo',t:'Tattoo',init:'IT',c:'#b0a2a5',plan:'mvp',status:'churn',mem:0,vis:0,sms:0,mrr:0,last:'18d ago',owner:'Rae Kim',phone:'+1 (415) 555-0125',since:'Sep 2025'}
+  ];
+  const STLABEL={active:'Active',trial:'Trial',past:'Past due',churn:'Churned'};
+  const PLANLABEL={mvp:'MVP',pro:'Pro',analytics:'Analytics'};
+
+  function rowHtml(b,i){
+    return `<tr onclick="openBiz(${i})">
+      <td><div class="biz"><div class="bav" style="background:${b.c}">${b.init}</div><div><b>${b.n}</b><span>${b.t} · ${b.owner}</span></div></div></td>
+      <td><span class="plan ${b.plan}">${PLANLABEL[b.plan]}</span></td>
+      <td><span class="st ${b.status}"><span class="d"></span>${STLABEL[b.status]}</span></td>
+      <td>${b.mem.toLocaleString()}</td>
+      <td>${b.vis.toLocaleString()}</td>
+      <td>${b.sms.toLocaleString()}</td>
+      <td><b>${b.mrr?'$'+b.mrr:'—'}</b></td>
+      <td style="color:var(--ink-soft)">${b.last}</td></tr>`;
+  }
+  function renderBiz(filter){
+    const body=document.getElementById('bizBody');
+    body.innerHTML=BIZ.map((b,i)=>({b,i})).filter(o=>filter==='all'||o.b.status===filter).map(o=>rowHtml(o.b,o.i)).join('');
+  }
+  function filterBiz(f,btn){
+    document.querySelectorAll('#bizTabs button').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on'); renderBiz(f);
+  }
+
+  function openBiz(i){
+    const b=BIZ[i];
+    document.getElementById('modal').innerHTML=`
+      <div class="mhead">
+        <div class="bav" style="background:${b.c}">${b.init}</div>
+        <div><h3 style="font-size:18px;">${b.n}</h3><div class="sub" style="margin:0;color:var(--ink-soft);font-size:12.5px;">${b.t} · member since ${b.since}</div></div>
+        <button class="x" onclick="closeBiz()">×</button>
+      </div>
+      <div class="mbody">
+        <div style="margin-bottom:16px;"><span class="plan ${b.plan}">${PLANLABEL[b.plan]} plan</span> <span class="st ${b.status}" style="margin-left:6px;"><span class="d"></span>${STLABEL[b.status]}</span></div>
+        <div class="mstat">
+          <div class="s"><b style="color:var(--rose-deep)">${b.mem.toLocaleString()}</b><span>Members</span></div>
+          <div class="s"><b style="color:var(--gold)">${b.vis.toLocaleString()}</b><span>Visits</span></div>
+          <div class="s"><b style="color:var(--green)">${b.mrr?'$'+b.mrr:'$0'}</b><span>MRR</span></div>
+        </div>
+        <div class="drow"><span>Owner</span><b>${b.owner}</b></div>
+        <div class="drow"><span>SMS sender</span><b>${b.phone}</b></div>
+        <div class="drow"><span>Messages / month</span><b>${b.sms.toLocaleString()}</b></div>
+        <div class="drow"><span>Last active</span><b>${b.last}</b></div>
+        <div class="drow"><span>Subscription</span><b>${b.status==='trial'?'Free trial':(b.status==='past'?'Payment failed':(b.status==='churn'?'Cancelled':'Billing monthly'))}</b></div>
+        <div class="mactions">
+          <button class="btn" onclick="toast('Opening ${b.n}\\'s owner dashboard (view as)')">View dashboard</button>
+          <button class="btn ghost" onclick="toast('Opening SMS logs for ${b.n}')">SMS logs</button>
+          ${b.status==='past'?`<button class="btn danger" onclick="toast('Retry charge sent to ${b.owner}')">Retry charge</button>`:(b.status==='churn'?`<button class="btn ghost" onclick="toast('Win-back email queued')">Win back</button>`:`<button class="btn danger" onclick="toast('Suspend flow — confirmation required')">Suspend</button>`)}
+        </div>
+      </div>`;
+    document.getElementById('overlay').classList.add('on');
+  }
+  function closeBiz(){ document.getElementById('overlay').classList.remove('on'); }
+
+  // ---- Charts ----
+  function renderMRR(){
+    const data=[{m:'Jan',v:1200},{m:'Feb',v:1800},{m:'Mar',v:2400},{m:'Apr',v:2900},{m:'May',v:3400},{m:'Jun',v:3816}];
+    const max=4000;
+    document.getElementById('mrrChart').innerHTML=data.map((d,i)=>{
+      const h=Math.round(d.v/max*100);
+      const gold=i===data.length-1?' gold':'';
+      return `<div class="bar"><div class="val">$${(d.v/1000).toFixed(1)}k</div><div class="fill${gold}" style="height:${h}%"></div><div class="lbl">${d.m}</div></div>`;
+    }).join('');
+  }
+  function renderDonut(){
+    const segs=[{v:9,c:'#8C6FB0'},{v:8,c:'#C97B86'},{v:4,c:'#C9A24B'},{v:3,c:'#D9A95B'}];
+    const total=segs.reduce((a,s)=>a+s.v,0);
+    const C=2*Math.PI*54; let off=0;
+    let circles='';
+    segs.forEach(s=>{
+      const len=s.v/total*C;
+      circles+=`<circle cx="70" cy="70" r="54" fill="none" stroke="${s.c}" stroke-width="22" stroke-dasharray="${len} ${C-len}" stroke-dashoffset="${-off}" transform="rotate(-90 70 70)"/>`;
+      off+=len;
+    });
+    document.getElementById('donut').innerHTML=`<svg width="140" height="140" viewBox="0 0 140 140">${circles}<circle cx="70" cy="70" r="40" fill="#fff"/><text x="70" y="66" text-anchor="middle" font-size="24" font-weight="800" fill="#3A2C30">24</text><text x="70" y="84" text-anchor="middle" font-size="10" fill="#8a7a7e" font-weight="700">BUSINESSES</text></svg>`;
+  }
+
+  function toast(msg){
+    const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
+    clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2400);
+  }
+
+  // init
+  renderBiz('all');
+  renderMRR();
+  renderDonut();
+</script>
+</body>
+</html>

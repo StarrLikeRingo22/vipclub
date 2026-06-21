@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VIP Club — Live Demo</title>
+<style>
+  :root{
+    --navy:#0d1424; --navy2:#151f36; --panel:#1b2740; --line:#27344f;
+    --gold:#d8b15b; --gold2:#f0d089; --ink:#e9eef7; --mut:#94a3c4;
+    --green:#3ecf8e; --red:#ff6b6b; --blue:#5aa9ff; --radius:16px;
+    --shadow:0 12px 40px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(1200px 600px at 80% -10%,#1a2742 0%,var(--navy) 55%);
+    color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none}
+  input,select,textarea{font-family:inherit}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 18px}
+  .gold{color:var(--gold)}
+  .mut{color:var(--mut)}
+
+  /* Top bar */
+  header.top{position:sticky;top:0;z-index:50;background:rgba(13,20,36,.82);
+    backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .topin{display:flex;align-items:center;gap:14px;height:62px}
+  .logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.5px}
+  .logo .badge{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--gold),var(--gold2));color:#23200f;font-weight:900;font-size:15px}
+  .roles{margin-left:auto;display:flex;gap:6px;background:var(--panel);padding:5px;border-radius:12px;border:1px solid var(--line)}
+  .roles button{background:transparent;color:var(--mut);padding:8px 14px;border-radius:8px;font-weight:600;font-size:13px;transition:.15s}
+  .roles button.active{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#23200f}
+  .roles button:hover:not(.active){color:var(--ink)}
+
+  /* Generic */
+  .view{display:none;padding:26px 0 70px;animation:fade .35s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.3px}
+  h2{font-size:18px;font-weight:700;margin-bottom:2px}
+  .sub{color:var(--mut);font-size:14px;margin-top:4px}
+  .card{background:linear-gradient(180deg,var(--panel),var(--navy2));border:1px solid var(--line);
+    border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+  .grid{display:grid;gap:16px}
+
+  /* KPIs */
+  .kpis{grid-template-columns:repeat(4,1fr);margin:18px 0}
+  .kpi .lbl{font-size:12px;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;font-weight:700}
+  .kpi .val{font-size:30px;font-weight:800;margin-top:6px}
+  .kpi .delta{font-size:12px;margin-top:6px;font-weight:600}
+  .kpi .delta.up{color:var(--green)} .kpi .delta.down{color:var(--red)}
+  .kpi .ic{float:right;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:18px;
+    background:rgba(216,177,91,.12);border:1px solid rgba(216,177,91,.25)}
+
+  /* Layout cols */
+  .cols{grid-template-columns:1.6fr 1fr;align-items:start}
+  @media(max-width:880px){.cols{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(2,1fr)}.roles button{padding:8px 9px;font-size:12px}}
+
+  /* Table */
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th{text-align:left;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.5px;
+    padding:8px 10px;border-bottom:1px solid var(--line)}
+  td{padding:11px 10px;border-bottom:1px solid rgba(39,52,79,.55);vertical-align:middle}
+  tr:last-child td{border-bottom:none}
+  tr.clk:hover{background:rgba(90,169,255,.06);cursor:pointer}
+  .who{display:flex;align-items:center;gap:10px}
+  .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;
+    background:linear-gradient(135deg,#2a3a5c,#1d2840);color:var(--gold2);flex:none}
+  .nm{font-weight:600} .ph{font-size:12px;color:var(--mut)}
+
+  /* progress */
+  .prog{display:flex;align-items:center;gap:8px}
+  .bar{flex:1;height:8px;background:#26314c;border-radius:99px;overflow:hidden;min-width:70px}
+  .bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:99px}
+  .pts{font-size:12px;color:var(--mut);white-space:nowrap;font-weight:600}
+
+  .pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;
+    padding:4px 9px;border-radius:99px;border:1px solid transparent}
+  .pill.active{color:var(--green);background:rgba(62,207,142,.12);border-color:rgba(62,207,142,.3)}
+  .pill.inactive{color:#ffb454;background:rgba(255,180,84,.12);border-color:rgba(255,180,84,.3)}
+  .pill.ready{color:var(--gold2);background:rgba(216,177,91,.15);border-color:rgba(216,177,91,.4)}
+  .pill.unsub{color:var(--red);background:rgba(255,107,107,.12);border-color:rgba(255,107,107,.3)}
+
+  /* buttons */
+  .btn{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#23200f;font-weight:700;
+    padding:11px 16px;border-radius:11px;font-size:14px;transition:.15s;display:inline-flex;align-items:center;gap:8px}
+  .btn:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  .btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:var(--gold);color:var(--gold2)}
+  .btn.sm{padding:7px 12px;font-size:12.5px;border-radius:9px}
+  .btn:disabled{opacity:.5;cursor:not-allowed;transform:none;filter:none}
+
+  label.f{display:block;font-size:12px;color:var(--mut);font-weight:700;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.4px}
+  .inp{width:100%;background:var(--navy);border:1px solid var(--line);color:var(--ink);
+    padding:12px 13px;border-radius:11px;font-size:15px}
+  .inp:focus{outline:none;border-color:var(--gold)}
+  select.inp{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);
+    background-position:calc(100% - 18px) 19px,calc(100% - 13px) 19px;background-size:5px 5px;background-repeat:no-repeat}
+
+  /* SMS log / phone */
+  .sms{display:flex;flex-direction:column;gap:10px;max-height:340px;overflow:auto;padding-right:4px}
+  .sms .b{background:var(--navy);border:1px solid var(--line);border-radius:12px;border-top-left-radius:3px;padding:11px 13px;font-size:13px}
+  .sms .b .meta{display:flex;justify-content:space-between;margin-bottom:5px}
+  .sms .b .to{font-weight:700;font-size:12px;color:var(--gold2)}
+  .sms .b .t{font-size:11px;color:var(--mut)}
+  .sms .b .body{color:#d6deee;line-height:1.45}
+
+  /* Phone mock */
+  .phone{width:300px;max-width:100%;margin:0 auto;background:#05080f;border:10px solid #05080f;border-radius:38px;
+    box-shadow:var(--shadow);overflow:hidden}
+  .phone .scr{background:linear-gradient(180deg,#0f1830,#0b1124);min-height:540px;position:relative}
+  .phone .nub{height:26px;display:grid;place-items:center}
+  .phone .nub::after{content:"";width:90px;height:6px;border-radius:99px;background:#1b2740}
+  .phs{padding:18px 18px 26px}
+
+  /* QR */
+  .qr{width:170px;height:170px;border-radius:14px;background:#fff;padding:12px;margin:0 auto;display:block}
+  .qrwrap{text-align:center}
+
+  /* reward ring */
+  .ring{position:relative;width:130px;height:130px;margin:0 auto}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .ctr{position:absolute;inset:0;display:grid;place-items:center;text-align:center}
+  .ring .ctr b{font-size:26px;font-weight:800;display:block;line-height:1}
+  .ring .ctr span{font-size:11px;color:var(--mut)}
+
+  .seg{display:flex;gap:6px;background:var(--navy);border:1px solid var(--line);padding:5px;border-radius:12px;flex-wrap:wrap}
+  .seg button{flex:1;background:transparent;color:var(--mut);padding:9px;border-radius:8px;font-weight:600;font-size:13px;min-width:90px}
+  .seg button.on{background:var(--panel);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+
+  .hero{text-align:center;padding:30px 0 6px}
+  .hero .eyebrow{color:var(--gold);font-weight:800;letter-spacing:2px;font-size:12px;text-transform:uppercase}
+  .hero h1{font-size:40px;margin:12px 0 8px;line-height:1.05}
+  @media(max-width:600px){.hero h1{font-size:30px}}
+  .chips{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+  .chip{font-size:12.5px;color:var(--mut);background:var(--panel);border:1px solid var(--line);padding:7px 13px;border-radius:99px}
+
+  .picks{grid-template-columns:repeat(3,1fr);margin-top:26px}
+  @media(max-width:760px){.picks{grid-template-columns:1fr}}
+  .pick{cursor:pointer;transition:.18s;border:1px solid var(--line)}
+  .pick:hover{transform:translateY(-3px);border-color:var(--gold)}
+  .pick .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px;
+    background:rgba(216,177,91,.12);border:1px solid rgba(216,177,91,.25);margin-bottom:12px}
+  .pick h2{font-size:17px} .pick p{color:var(--mut);font-size:13.5px;margin-top:6px;line-height:1.5}
+  .pick .go{margin-top:12px;color:var(--gold2);font-weight:700;font-size:13px}
+
+  /* toast */
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(120px);
+    background:var(--navy2);border:1px solid var(--gold);color:var(--ink);padding:13px 18px;border-radius:12px;
+    box-shadow:var(--shadow);font-size:14px;font-weight:600;z-index:200;transition:.3s;display:flex;gap:10px;align-items:center;max-width:90vw}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+
+  /* modal */
+  .ov{position:fixed;inset:0;background:rgba(4,7,14,.72);backdrop-filter:blur(4px);z-index:120;
+    display:none;align-items:center;justify-content:center;padding:18px}
+  .ov.show{display:flex;animation:fade .2s}
+  .modal{width:440px;max-width:100%;max-height:90vh;overflow:auto}
+  .x{float:right;background:transparent;color:var(--mut);font-size:22px;line-height:1}
+
+  .stat2{display:flex;gap:18px;flex-wrap:wrap;margin-top:4px}
+  .stat2 div b{font-size:18px} .stat2 div span{font-size:11px;color:var(--mut);display:block}
+
+  .note{font-size:12px;color:var(--mut);background:rgba(90,169,255,.07);border:1px solid rgba(90,169,255,.2);
+    border-radius:10px;padding:10px 12px;line-height:1.5}
+  footer{border-top:1px solid var(--line);padding:22px 0;color:var(--mut);font-size:12.5px;text-align:center}
+  .flex{display:flex;align-items:center;gap:10px}
+  .between{justify-content:space-between}
+  .mt{margin-top:16px}.mt2{margin-top:24px}
+  .seclbl{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);font-weight:700;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap topin">
+  <div class="logo"><span class="badge">V</span> VIP&nbsp;CLUB</div>
+  <div class="roles" id="roles">
+    <button data-r="home" class="active">Home</button>
+    <button data-r="owner">Owner</button>
+    <button data-r="customer">Customer</button>
+    <button data-r="staff">Staff</button>
+  </div>
+</div></header>
+
+<!-- ============ HOME ============ -->
+<section class="view active" id="v-home"><div class="wrap">
+  <div class="hero">
+    <div class="eyebrow">Loyalty • Retention • Reactivation</div>
+    <h1>Turn one-time clients into <span class="gold">regulars</span>.</h1>
+    <p class="sub" style="max-width:560px;margin:0 auto">VIP Club remembers every client for you — tracking visits, rewarding loyalty, and automatically bringing people back through SMS. Click a role below to try the live demo.</p>
+    <div class="chips">
+      <span class="chip">📲 QR sign-up</span>
+      <span class="chip">🎁 Reward tracking</span>
+      <span class="chip">💬 Automated SMS</span>
+      <span class="chip">📅 Slow-day campaigns</span>
+      <span class="chip">📈 Revenue you can see</span>
+    </div>
+  </div>
+
+  <div class="grid picks">
+    <div class="card pick" data-go="owner">
+      <div class="ic">📊</div>
+      <h2>I'm the Owner</h2>
+      <p>See your whole client base, loyalty progress, and fill slow days with one-tap campaigns. <b>Start here.</b></p>
+      <div class="go">Open dashboard →</div>
+    </div>
+    <div class="card pick" data-go="customer">
+      <div class="ic">📲</div>
+      <h2>I'm a Customer</h2>
+      <p>Scan, join in 10 seconds, and watch your rewards grow with every visit.</p>
+      <div class="go">Join the club →</div>
+    </div>
+    <div class="card pick" data-go="staff">
+      <div class="ic">✂️</div>
+      <h2>I'm Staff</h2>
+      <p>Scan a client's code at checkout and log their visit in one tap.</p>
+      <div class="go">Open check-in →</div>
+    </div>
+  </div>
+
+  <div class="card mt2 note" style="display:flex;gap:12px">
+    <span style="font-size:18px">💡</span>
+    <div>This is a working prototype with sample data. Everything you do here — adding clients, logging visits, sending campaigns — updates live across all three views. No sign-up, no install. Refresh the page to reset.</div>
+  </div>
+</div></section>
+
+<!-- ============ OWNER ============ -->
+<section class="view" id="v-owner"><div class="wrap">
+  <div class="flex between">
+    <div><h1>Owner Dashboard</h1><p class="sub">Bella Studio · Hair & Barber — last 30 days</p></div>
+    <button class="btn ghost sm" onclick="seedReset()">↺ Reset demo data</button>
+  </div>
+
+  <div class="grid kpis" id="kpis"></div>
+
+  <div class="grid cols">
+    <div class="card">
+      <div class="flex between" style="margin-bottom:12px">
+        <div><h2>Clients</h2><p class="sub" id="cliCount"></p></div>
+        <select class="inp" id="cliFilter" style="width:auto" onchange="renderClients()">
+          <option value="all">All clients</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive 30+ days</option>
+          <option value="ready">Reward ready</option>
+        </select>
+      </div>
+      <div style="overflow:auto">
+      <table><thead><tr>
+        <th>Client</th><th>Reward progress</th><th>Last visit</th><th>Status</th>
+      </tr></thead><tbody id="cliBody"></tbody></table>
+      </div>
+    </div>
+
+    <div class="grid" style="gap:16px">
+      <div class="card">
+        <h2>Fill a slow day</h2>
+        <p class="sub">Pick who to bring back, write the offer, send. We text them instantly.</p>
+        <label class="f">Audience</label>
+        <select class="inp" id="campAud">
+          <option value="inactive30">Inactive 30+ days</option>
+          <option value="inactive45">Inactive 45+ days</option>
+          <option value="onetime">One-time clients</option>
+          <option value="closereward">Close to a reward</option>
+          <option value="all">All active members</option>
+        </select>
+        <label class="f">Offer message</label>
+        <textarea class="inp" id="campMsg" rows="3">VIP offer — today only: 20% off your next visit. A few spots left this week. Book: bellastudio.book/vip</textarea>
+        <div class="flex between mt">
+          <span class="pts" id="campReach">Reaches 0 clients</span>
+          <button class="btn sm" onclick="sendCampaign()">📣 Send campaign</button>
+        </div>
+        <div id="campResult"></div>
+      </div>
+
+      <div class="card">
+        <div class="flex between" style="margin-bottom:10px">
+          <h2>Live message log</h2><span class="pill active" id="smsCount">0 sent</span>
+        </div>
+        <div class="sms" id="smsLog"></div>
+      </div>
+    </div>
+  </div>
+</div></section>
+
+<!-- ============ CUSTOMER ============ -->
+<section class="view" id="v-customer"><div class="wrap">
+  <h1>Customer Experience</h1>
+  <p class="sub">What your clients see on their own phone. Try joining, then check your reward card.</p>
+
+  <div class="seg mt" id="custSeg" style="max-width:420px">
+    <button class="on" data-c="join">① Scan & Join</button>
+    <button data-c="pass">② My VIP Pass</button>
+  </div>
+
+  <div class="mt2" style="display:flex;justify-content:center">
+    <div class="phone"><div class="scr"><div class="nub"></div><div class="phs" id="phoneScr"></div></div></div>
+  </div>
+</div></section>
+
+<!-- ============ STAFF ============ -->
+<section class="view" id="v-staff"><div class="wrap">
+  <h1>Staff Check-In</h1>
+  <p class="sub">At checkout, scan the client's VIP code and log the visit in one tap.</p>
+
+  <div class="grid cols mt">
+    <div class="card">
+      <h2>📷 Scan a client</h2>
+      <p class="sub">In the real app this opens your phone camera. For the demo, tap a client to "scan" them.</p>
+      <div class="grid mt" id="scanList" style="gap:8px"></div>
+    </div>
+    <div class="card" id="staffPanel">
+      <p class="mut" style="text-align:center;padding:40px 0">← Scan a client to open their profile</p>
+    </div>
+  </div>
+</div></section>
+
+<div id="toast"></div>
+<div class="ov" id="ov"><div class="card modal" id="modal"></div></div>
+
+<footer>VIP Club — interactive prototype · sample data only · built for demonstration</footer>
+
+<script>
+/* ---------- DATA ---------- */
+const THRESH=5; // points per reward
+const REWARD="Free haircut / blowout";
+let SMS=[]; let customers=[]; let scanned=null;
+
+const SEED=()=>[
+  c("Marcus Reed","(415) 555-0142",4,7),
+  c("Jasmine Ortiz","(415) 555-0198",2,12),
+  c("David Kim","(415) 555-0110",5,3,true),
+  c("Aisha Bello","(415) 555-0175",1,41),
+  c("Tyler Nguyen","(415) 555-0163",3,2),
+  c("Sofia Romano","(415) 555-0188",4,52),
+  c("Liam Walsh","(415) 555-0129",0,8,false,1),
+  c("Priya Nair","(415) 555-0151",2,38),
+  c("Chris Bauer","(415) 555-0134",5,21,true),
+  c("Nina Petrov","(415) 555-0107",1,68),
+  c("Omar Haddad","(415) 555-0192",3,5),
+  c("Grace Lee","(415) 555-0145",4,28),
+];
+let _id=1;
+function c(name,phone,pts,daysAgo,ready,visitsOverride){
+  const d=new Date(); d.setDate(d.getDate()-daysAgo);
+  const visits = visitsOverride!=null?visitsOverride:(pts + (name.charCodeAt(0)%3)*5);
+  return {id:_id++,name,phone,points:pts,visits:Math.max(pts,visits),last:d,
+    status:'active',rewardReady:!!ready,birthday:null};
+}
+function seedReset(){_id=1;customers=SEED();SMS=[];scanned=null;
+  pushSMS("system","Demo data reset. 12 sample clients loaded.","System");
+  renderAll();toast("Demo data reset ↺");}
+
+/* ---------- HELPERS ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const initials=n=>n.split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+const daysSince=d=>Math.floor((Date.now()-d)/864e5);
+const fmtDate=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+function statusOf(c){if(c.status==='unsub')return'unsub';
+  if(c.rewardReady||c.points>=THRESH)return'ready';
+  return daysSince(c.last)>=30?'inactive':'active';}
+function toast(msg){const t=$('#toast');t.innerHTML='<span>✓</span>'+msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
+function pushSMS(type,body,to){SMS.unshift({type,body,to,t:new Date()});}
+function timeStr(d){return d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
+
+/* simple QR-ish svg (decorative, deterministic) */
+function qrSVG(seed){let s=0;for(const ch of seed)s=(s*31+ch.charCodeAt(0))>>>0;
+  const n=21,cell=8;let r='';
+  const rng=()=>{s=(s*1103515245+12345)&0x7fffffff;return s/0x7fffffff;};
+  for(let y=0;y<n;y++)for(let x=0;x<n;x++){
+    const finder=(x<7&&y<7)||(x>=n-7&&y<7)||(x<7&&y>=n-7);
+    let fill=false;
+    if(finder){const lx=x>=n-7?x-(n-7):x,ly=y>=n-7?y-(n-7):y;
+      fill=(lx===0||lx===6||ly===0||ly===6)||(lx>=2&&lx<=4&&ly>=2&&ly<=4);}
+    else fill=rng()>0.55;
+    if(fill)r+=`<rect x="${x*cell}" y="${y*cell}" width="${cell}" height="${cell}"/>`;}
+  return `<svg class="qr" viewBox="0 0 ${n*cell} ${n*cell}" xmlns="http://www.w3.org/2000/svg"><g fill="#0d1424">${r}</g></svg>`;}
+
+/* ---------- ROUTING ---------- */
+function go(r){$$('.view').forEach(v=>v.classList.remove('active'));
+  $('#v-'+r).classList.add('active');
+  $$('#roles button').forEach(b=>b.classList.toggle('active',b.dataset.r===r));
+  window.scrollTo({top:0,behavior:'smooth'});}
+$('#roles').onclick=e=>{if(e.target.dataset.r)go(e.target.dataset.r);};
+$$('.pick').forEach(p=>p.onclick=()=>go(p.dataset.go));
+
+/* ---------- OWNER: KPIs ---------- */
+function renderKPIs(){
+  const active=customers.filter(c=>statusOf(c)!=='unsub').length;
+  const visitsMonth=customers.reduce((a,c)=>a+(daysSince(c.last)<=30?1:0),0)
+    + customers.reduce((a,c)=>a+Math.min(c.visits,4),0); // demo-ish number
+  const ready=customers.filter(c=>statusOf(c)==='ready').length;
+  const revenue=campaignRevenue;
+  const data=[
+    ['Active members',active,'+'+Math.max(2,Math.round(active*0.18))+' this month','up','👥'],
+    ['Visits logged',visitsMonth,'+'+Math.round(visitsMonth*0.12)+' vs last mo','up','✂️'],
+    ['Rewards ready',ready,ready?'Nudge them in 1 tap':'All claimed','up','🎁'],
+    ['Reactivation rev.','$'+revenue.toLocaleString(),'from campaigns','up','💰'],
+  ];
+  $('#kpis').innerHTML=data.map(d=>`<div class="card kpi">
+    <div class="ic">${d[4]}</div><div class="lbl">${d[0]}</div>
+    <div class="val">${d[1]}</div><div class="delta ${d[3]}">▲ ${d[2]}</div></div>`).join('');
+}
+
+/* ---------- OWNER: clients ---------- */
+function clientsFor(filter){
+  return customers.filter(c=>{
+    const s=statusOf(c);
+    if(filter==='active')return s==='active'||s==='ready';
+    if(filter==='inactive')return daysSince(c.last)>=30&&s!=='unsub';
+    if(filter==='ready')return s==='ready';
+    return true;
+  });
+}
+function renderClients(){
+  const f=$('#cliFilter').value, list=clientsFor(f);
+  $('#cliCount').textContent=list.length+' shown · '+customers.length+' total';
+  $('#cliBody').innerHTML=list.map(c=>{
+    const s=statusOf(c),pct=Math.min(100,c.points/THRESH*100);
+    const lbl={active:'Active',inactive:'Inactive',ready:'Reward ready',unsub:'Unsubscribed'}[s];
+    return `<tr class="clk" onclick="openClient(${c.id})">
+      <td><div class="who"><div class="av">${initials(c.name)}</div>
+        <div><div class="nm">${c.name}</div><div class="ph">${c.phone}</div></div></div></td>
+      <td><div class="prog"><div class="bar"><i style="width:${pct}%"></i></div>
+        <span class="pts">${Math.min(c.points,THRESH)}/${THRESH}</span></div></td>
+      <td><span class="pts">${fmtDate(c.last)} · ${daysSince(c.last)}d</span></td>
+      <td><span class="pill ${s}">${lbl}</span></td></tr>`;
+  }).join('') || `<tr><td colspan="4" class="mut" style="text-align:center;padding:24px">No clients in this segment 🎉</td></tr>`;
+}
+
+function openClient(id){
+  const c=customers.find(x=>x.id===id);const s=statusOf(c);const pct=Math.min(100,c.points/THRESH*100);
+  $('#modal').innerHTML=`<button class="x" onclick="closeOv()">×</button>
+   <div class="flex" style="gap:14px"><div class="av" style="width:52px;height:52px;font-size:18px">${initials(c.name)}</div>
+     <div><h2>${c.name}</h2><p class="ph">${c.phone}</p></div></div>
+   <div class="stat2 mt2">
+     <div><b>${c.visits}</b><span>Total visits</span></div>
+     <div><b>${Math.min(c.points,THRESH)}/${THRESH}</b><span>To next reward</span></div>
+     <div><b>${daysSince(c.last)}d</b><span>Since last visit</span></div>
+     <div><b><span class="pill ${s}" style="font-size:11px">${s==='ready'?'Reward ready':s.charAt(0).toUpperCase()+s.slice(1)}</span></b><span>Status</span></div>
+   </div>
+   <div class="bar mt2" style="height:10px"><i style="width:${pct}%"></i></div>
+   <div class="grid mt2" style="grid-template-columns:1fr 1fr;gap:10px">
+     <button class="btn sm" onclick="addVisit(${c.id});refreshModal(${c.id})">＋ Add visit</button>
+     <button class="btn ghost sm" onclick="remindOne(${c.id})">💬 Send reminder</button>
+   </div>
+   ${s==='ready'?`<button class="btn sm mt" style="width:100%" onclick="redeem(${c.id});refreshModal(${c.id})">🎁 Redeem reward (${REWARD})</button>`:''}
+   <p class="note mt2">Last visit ${fmtDate(c.last)}. Next auto-reminder scheduled around day 21.</p>`;
+  $('#ov').classList.add('show');
+}
+function refreshModal(id){const c=customers.find(x=>x.id===id);if(c)openClient(id);}
+function closeOv(){$('#ov').classList.remove('show');}
+$('#ov').onclick=e=>{if(e.target.id==='ov')closeOv();};
+
+/* ---------- core actions ---------- */
+function addVisit(id){
+  const c=customers.find(x=>x.id===id);
+  c.visits++;c.points++;c.last=new Date();c.status='active';
+  if(c.points>=THRESH){c.rewardReady=true;
+    pushSMS("reward",`🎉 ${c.name.split(' ')[0]}, you've earned a reward: ${REWARD}! Show this text on your next visit.`,c.name);}
+  else{const left=THRESH-c.points;
+    pushSMS("visit",`Visit logged ✓ You're ${left} visit${left>1?'s':''} away from your next VIP reward 💈`,c.name);}
+  renderAll();toast(`Visit added for ${c.name.split(' ')[0]}`);
+}
+function redeem(id){const c=customers.find(x=>x.id===id);
+  c.rewardReady=false;c.points=0;
+  pushSMS("reward",`Reward redeemed — enjoy your ${REWARD}! Your VIP count restarts now. See you soon 💈`,c.name);
+  renderAll();toast(`Reward redeemed for ${c.name.split(' ')[0]} 🎁`);}
+function remindOne(id){const c=customers.find(x=>x.id===id);
+  pushSMS("reminder",`Hi ${c.name.split(' ')[0]}! You're probably due for a fresh look 👀 Book here: bellastudio.book/vip`,c.name);
+  renderAll();toast(`Reminder sent to ${c.name.split(' ')[0]}`);}
+
+/* ---------- campaigns ---------- */
+let campaignRevenue=480;
+function campAudience(v){
+  if(v==='inactive30')return customers.filter(c=>daysSince(c.last)>=30&&statusOf(c)!=='unsub');
+  if(v==='inactive45')return customers.filter(c=>daysSince(c.last)>=45&&statusOf(c)!=='unsub');
+  if(v==='onetime')return customers.filter(c=>c.visits<=1);
+  if(v==='closereward')return customers.filter(c=>c.points>=THRESH-1&&statusOf(c)!=='unsub');
+  return customers.filter(c=>statusOf(c)!=='unsub');
+}
+function updateReach(){const n=campAudience($('#campAud').value).length;
+  $('#campReach').textContent=`Reaches ${n} client${n!==1?'s':''}`;}
+function sendCampaign(){
+  const aud=campAudience($('#campAud').value),msg=$('#campMsg').value.trim();
+  if(!aud.length){toast('No clients match that segment');return;}
+  aud.forEach(c=>pushSMS("campaign",msg,c.name));
+  const booked=Math.max(1,Math.round(aud.length*0.28));
+  const rev=booked*40;campaignRevenue+=rev;
+  $('#campResult').innerHTML=`<div class="note mt"><b>Campaign sent to ${aud.length} clients.</b><br>
+    Estimated ${booked} rebookings · ~$${rev} projected revenue. Results will update as clients reply.</div>`;
+  renderAll();toast(`📣 Campaign sent to ${aud.length} clients`);
+}
+
+/* ---------- SMS log ---------- */
+function renderSMS(){
+  $('#smsCount').textContent=SMS.length+' sent';
+  $('#smsLog').innerHTML=SMS.slice(0,40).map(m=>`<div class="b">
+     <div class="meta"><span class="to">→ ${m.to}</span><span class="t">${timeStr(m.t)}</span></div>
+     <div class="body">${m.body}</div></div>`).join('')
+   || `<p class="mut" style="text-align:center;padding:20px">No messages yet. Add a visit or send a campaign.</p>`;
+}
+
+/* ---------- CUSTOMER phone ---------- */
+let custTab='join', joinedCustomer=null;
+$('#custSeg').onclick=e=>{if(e.target.dataset.c){custTab=e.target.dataset.c;
+  $$('#custSeg button').forEach(b=>b.classList.toggle('on',b.dataset.c===custTab));renderPhone();}};
+
+function renderPhone(){
+  const el=$('#phoneScr');
+  if(custTab==='join'){
+    el.innerHTML=`
+     <div style="text-align:center;margin-bottom:14px">
+       <div class="logo" style="justify-content:center;font-size:15px"><span class="badge">V</span> VIP CLUB</div>
+       <p class="sub" style="margin-top:8px">Join Bella Studio's VIP Club. Earn a reward every ${THRESH} visits.</p>
+     </div>
+     <label class="f">Full name</label><input class="inp" id="jName" placeholder="Your name">
+     <label class="f">Mobile number</label><input class="inp" id="jPhone" placeholder="(415) 555-0123">
+     <label class="f">Birthday (optional)</label><input class="inp" id="jBday" placeholder="MM/DD">
+     <label style="display:flex;gap:9px;align-items:flex-start;margin-top:14px;font-size:12px;color:var(--mut)">
+       <input type="checkbox" id="jConsent" checked style="margin-top:3px"> I agree to receive reward & reminder texts. Reply STOP to opt out.</label>
+     <button class="btn mt2" style="width:100%" onclick="doJoin()">Join the VIP Club →</button>
+     <p class="note mt2">10-second sign-up — no app to download. A welcome text arrives instantly.</p>`;
+  } else {
+    const c=joinedCustomer||customers[0];
+    const pts=Math.min(c.points,THRESH),pct=pts/THRESH*100,ready=statusOf(c)==='ready';
+    const R=58,C=2*Math.PI*R,off=C*(1-pct/100);
+    el.innerHTML=`
+     <div style="text-align:center"><div class="logo" style="justify-content:center;font-size:14px"><span class="badge">V</span> VIP PASS</div>
+       <p class="sub" style="margin-top:6px">${c.name}</p></div>
+     <div class="ring mt2"><svg width="130" height="130">
+        <circle cx="65" cy="65" r="${R}" stroke="#26314c" stroke-width="11" fill="none"/>
+        <circle cx="65" cy="65" r="${R}" stroke="url(#g)" stroke-width="11" fill="none"
+          stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}"/>
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#d8b15b"/><stop offset="1" stop-color="#f0d089"/></linearGradient></defs></svg>
+       <div class="ctr">${ready?'<b>🎁</b><span>Reward ready!</span>':`<b>${pts}/${THRESH}</b><span>to reward</span>`}</div></div>
+     <p style="text-align:center;font-weight:700;margin-top:6px">${ready?'Show this at checkout':`${THRESH-pts} visit${THRESH-pts>1?'s':''} to ${REWARD}`}</p>
+     <div class="qrwrap mt2">${qrSVG(c.name+c.phone)}<p class="sub" style="margin-top:8px">Staff scans this at checkout</p></div>
+     <div class="grid mt2" style="grid-template-columns:1fr 1fr;gap:8px">
+       <div class="card" style="padding:11px;text-align:center"><b style="font-size:17px">${c.visits}</b><div class="sub">visits</div></div>
+       <div class="card" style="padding:11px;text-align:center"><b style="font-size:17px">${daysSince(c.last)}d</b><div class="sub">last visit</div></div></div>
+     <button class="btn ghost sm mt2" style="width:100%" onclick="shareRef('${c.name.split(' ')[0]}')">🎉 Refer a friend — they get 25% off</button>`;
+  }
+}
+function doJoin(){
+  const n=$('#jName').value.trim()||'New Member',p=$('#jPhone').value.trim()||'(415) 555-0100';
+  const nc={id:_id++,name:n,phone:p,points:0,visits:0,last:new Date(),status:'active',rewardReady:false};
+  customers.unshift(nc);joinedCustomer=nc;
+  pushSMS("welcome",`Welcome to VIP Club, ${n.split(' ')[0]}! 🎉 You're officially in. Earn a reward every ${THRESH} visits & get fresh-look reminders. Reply STOP to opt out.`,n);
+  renderAll();toast(`${n.split(' ')[0]} joined the VIP Club!`);
+  custTab='pass';$$('#custSeg button').forEach(b=>b.classList.toggle('on',b.dataset.c==='pass'));renderPhone();
+}
+function shareRef(name){toast(`Referral link copied for ${name} 🎉`);
+  pushSMS("referral",`${name} invited you to Bella Studio! Get 25% off your first visit: bellastudio.book/ref-${name.toLowerCase()}`,"Friend of "+name);renderSMS();}
+
+/* ---------- STAFF ---------- */
+function renderScanList(){
+  $('#scanList').innerHTML=customers.slice(0,8).map(c=>`
+    <button class="btn ghost sm" style="justify-content:flex-start;width:100%" onclick="scan(${c.id})">
+      <span class="av" style="width:26px;height:26px;font-size:11px">${initials(c.name)}</span>
+      <span style="text-align:left"><span style="display:block;font-weight:700">${c.name}</span>
+      <span class="ph">${Math.min(c.points,THRESH)}/${THRESH} pts · ${daysSince(c.last)}d ago</span></span></button>`).join('');
+}
+function scan(id){scanned=id;renderStaffPanel();toast('Scanned ✓ profile open');}
+function renderStaffPanel(){
+  const p=$('#staffPanel');
+  if(scanned==null){p.innerHTML=`<p class="mut" style="text-align:center;padding:40px 0">← Scan a client to open their profile</p>`;return;}
+  const c=customers.find(x=>x.id===scanned);if(!c){scanned=null;return renderStaffPanel();}
+  const s=statusOf(c),pct=Math.min(100,c.points/THRESH*100);
+  p.innerHTML=`<div class="flex between"><div class="flex" style="gap:12px">
+      <div class="av" style="width:46px;height:46px;font-size:16px">${initials(c.name)}</div>
+      <div><h2>${c.name}</h2><p class="ph">${c.phone}</p></div></div>
+      <span class="pill ${s}">${s==='ready'?'Reward ready':s.charAt(0).toUpperCase()+s.slice(1)}</span></div>
+    <div class="prog mt2"><div class="bar" style="height:10px"><i style="width:${pct}%"></i></div>
+      <span class="pts">${Math.min(c.points,THRESH)}/${THRESH}</span></div>
+    <div class="stat2 mt2"><div><b>${c.visits}</b><span>visits</span></div>
+      <div><b>${fmtDate(c.last)}</b><span>last visit</span></div></div>
+    <button class="btn mt2" style="width:100%;font-size:16px;padding:15px" onclick="addVisit(${c.id});renderStaffPanel()">＋ Add Visit</button>
+    ${s==='ready'?`<button class="btn ghost mt" style="width:100%" onclick="redeem(${c.id});renderStaffPanel()">🎁 Redeem ${REWARD}</button>`:''}
+    <p class="note mt2">Tip: clients can't add their own visits — only logged-in staff can, so points stay trustworthy.</p>`;
+}
+
+/* ---------- INIT ---------- */
+function renderAll(){renderKPIs();renderClients();renderSMS();updateReach();
+  renderPhone();renderScanList();if(scanned!=null)renderStaffPanel();}
+$('#campAud').onchange=updateReach;
+seedReset();
+</script>
+</body>
+</html>
