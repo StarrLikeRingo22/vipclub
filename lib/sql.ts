@@ -1,28 +1,26 @@
 // Neon Postgres data access. Used when DATABASE_URL is set; otherwise the app
 // falls back to the seeded in-memory store (zero-config demo mode).
 //
-// We use the Neon serverless HTTP driver, which works on Vercel serverless /
-// edge with no connection pooling to manage. Queries are parameterized.
-import { neon } from "@neondatabase/serverless";
+// We use the Neon serverless Pool with poolQueryViaFetch, so each single
+// query is sent over low-latency HTTP (no WebSocket) - ideal for Vercel
+// serverless functions. Queries are parameterized.
+import { Pool, neonConfig } from "@neondatabase/serverless";
+
+// Send individual Pool.query() calls over HTTP fetch instead of WebSockets.
+neonConfig.poolQueryViaFetch = true;
 
 const url = process.env.DATABASE_URL;
 
 export const isDbConfigured = Boolean(url);
 
-// The Neon HTTP function also supports sql.query(text, params) for classic
-// parameterized queries; type it explicitly so TypeScript is happy.
-interface ParamClient {
-  query: (text: string, params?: unknown[]) => Promise<Record<string, unknown>[]>;
-}
+let _pool: Pool | null = null;
 
-let _sql: ParamClient | null = null;
-
-function client(): ParamClient {
+function pool(): Pool {
   if (!url) {
     throw new Error("DATABASE_URL is not set (Neon is not configured).");
   }
-  if (!_sql) _sql = neon(url) as unknown as ParamClient;
-  return _sql;
+  if (!_pool) _pool = new Pool({ connectionString: url });
+  return _pool;
 }
 
 // pg returns numeric/decimal as strings and timestamptz as Date objects.
@@ -44,7 +42,8 @@ export async function dbQuery<T = Record<string, unknown>>(
   text: string,
   params: unknown[] = [],
 ): Promise<T[]> {
-  const rows = await client().query(text, params);
+  const res = await pool().query(text, params);
+  const rows = (res.rows ?? []) as Record<string, unknown>[];
   return rows.map((r) => normalizeRow<T>(r));
 }
 
