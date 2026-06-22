@@ -11,9 +11,13 @@ export async function POST(
   const auth = await requireRole(["owner", "staff"]);
   if ("error" in auth) return auth.error;
 
-  const customer = await redeem(params.id);
-  if (!customer) {
-    return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+  try {
+    const customer = await redeem(params.id);
+    if (!customer) {
+      return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+    }
+    return NextResponse.json({ customer });
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Failed" }, { status: 503 });
   }
-  return NextResponse.json({ customer });
 }

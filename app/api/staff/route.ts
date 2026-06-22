@@ -41,9 +41,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "That email is already in use." }, { status: 409 });
   }
 
-  const user = await createUser({ email, password, role, business_id: businessId, name });
-  return NextResponse.json(
-    { user: { id: user.id, name: user.name, email: user.email, role: user.role } },
-    { status: 201 },
-  );
+  try {
+    const user = await createUser({ email, password, role, business_id: businessId, name });
+    return NextResponse.json(
+      { user: { id: user.id, name: user.name, email: user.email, role: user.role } },
+      { status: 201 },
+    );
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Failed" }, { status: 503 });
+  }
 }

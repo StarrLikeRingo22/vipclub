@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid start time." }, { status: 400 });
   }
 
+  try {
   const [business, customer, services] = await Promise.all([
     getBusiness(business_id),
     getCustomer(customer_id),
@@ -96,4 +97,7 @@ export async function POST(req: NextRequest) {
     calendar: { icsUrl, googleUrl, outlookUrl },
     email: { status: emailStatus, configured: isEmailConfigured },
   }, { status: 201 });
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Failed" }, { status: 503 });
+  }
 }

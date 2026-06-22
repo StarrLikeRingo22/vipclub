@@ -7,7 +7,7 @@ import type {
   Business, Service, Customer, Visit, Booking, Message, Campaign,
   SignupInput, BusinessStats, MessageType,
 } from "./types";
-import { isDbConfigured, dbQuery, dbOne, dbInsert, dbUpdate, dbCount } from "./sql";
+import { isDbConfigured, dbQuery, dbOne, dbInsert, dbUpdate, dbCount, dbWriteError } from "./sql";
 import { db as mem, applyVisit, redeemReward } from "./store";
 import { uid, memberCode, nowIso, daysAgo } from "./util";
 
@@ -87,8 +87,8 @@ export async function createCustomer(input: SignupInput): Promise<Customer> {
   if (useDb) {
     try {
       return await dbInsert<Customer>("customers", customer);
-    } catch {
-      /* fall through to in-memory */
+    } catch (e) {
+      throw dbWriteError(e);
     }
   }
   mem().customers.unshift(customer);
@@ -142,8 +142,8 @@ export async function addVisit(
           return { customer: updated, visit, rewardJustEarned: ready && newPoints === threshold };
         }
       }
-    } catch {
-      /* fall through to in-memory */
+    } catch (e) {
+      throw dbWriteError(e);
     }
   }
 
@@ -160,8 +160,8 @@ export async function redeem(customerId: string): Promise<Customer | null> {
         reward_status: "redeemed",
       });
       if (updated) return updated;
-    } catch {
-      /* fall through to in-memory */
+    } catch (e) {
+      throw dbWriteError(e);
     }
   }
   const c = mem().customers.find((x) => x.id === customerId);
@@ -210,9 +210,8 @@ export async function completeBooking(
   if (useDb) {
     try {
       await dbUpdate("bookings", bookingId, { status: "done", service_id: joinedId });
-    } catch {
-      booking.status = "done";
-      booking.service_id = joinedId;
+    } catch (e) {
+      throw dbWriteError(e);
     }
   } else {
     booking.status = "done";
@@ -241,8 +240,8 @@ export async function recordMessage(
     try {
       await dbInsert<Message>("messages", msg);
       return msg;
-    } catch {
-      /* fall through to in-memory */
+    } catch (e) {
+      throw dbWriteError(e);
     }
   }
   mem().messages.unshift(msg);
@@ -265,8 +264,8 @@ export async function createCampaign(
     try {
       await dbInsert<Campaign>("campaigns", campaign);
       return campaign;
-    } catch {
-      /* fall through to in-memory */
+    } catch (e) {
+      throw dbWriteError(e);
     }
   }
   mem().campaigns.unshift(campaign);

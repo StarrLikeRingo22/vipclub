@@ -1,6 +1,6 @@
 // Booking creation (scheduling). New module so the core db.ts stays untouched.
 import type { Booking } from "./types";
-import { isDbConfigured, dbInsert } from "./sql";
+import { isDbConfigured, dbInsert, dbWriteError } from "./sql";
 import { db as mem } from "./store";
 import { uid, nowIso } from "./util";
 
@@ -41,7 +41,11 @@ export async function createBooking(input: NewBooking): Promise<Booking> {
     customer_email: input.customer_email ?? null,
   };
   if (useDb) {
-    return dbInsert<Booking>("bookings", booking);
+    try {
+      return await dbInsert<Booking>("bookings", booking);
+    } catch (e) {
+      throw dbWriteError(e);
+    }
   }
   mem().bookings.push(booking);
   return booking;

@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  audienceFor, createCampaign, recordMessage, getBusiness,
-} from "@/lib/db";
+import { audienceFor, createCampaign, recordMessage, getBusiness } from "@/lib/db";
 import { sendSms } from "@/lib/sms";
 import { requireRole } from "@/lib/session";
 
@@ -27,35 +25,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "business_id and message required" }, { status: 400 });
   }
 
-  const business = await getBusiness(business_id);
-  if (!business) {
-    return NextResponse.json({ error: "Business not found" }, { status: 404 });
+  try {
+    const business = await getBusiness(business_id);
+    if (!business) {
+      return NextResponse.json({ error: "Business not found" }, { status: 404 });
+    }
+
+    const recipients = await audienceFor(business_id, audience);
+    let sent = 0;
+    let failed = 0;
+    for (const c of recipients) {
+      const res = await sendSms(c.phone, message);
+      await recordMessage(business_id, c.id, "campaign", message, res.status, res.sid);
+      if (res.ok) sent += 1;
+      else failed += 1;
+    }
+
+    await createCampaign(business_id, `${audience} blast`, audience, message, sent);
+
+    return NextResponse.json({ audience, recipients: recipients.length, sent, failed, delivered: sent });
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Failed" }, { status: 503 });
   }
-
-  const recipients = await audienceFor(business_id, audience);
-
-  let sent = 0;
-  let failed = 0;
-  for (const c of recipients) {
-    const res = await sendSms(c.phone, message);
-    await recordMessage(business_id, c.id, "campaign", message, res.status, res.sid);
-    if (res.ok) sent += 1;
-    else failed += 1;
-  }
-
-  await createCampaign(
-    business_id,
-    `${audience} blast`,
-    audience,
-    message,
-    sent,
-  );
-
-  return NextResponse.json({
-    audience,
-    recipients: recipients.length,
-    sent,
-    failed,
-    delivered: sent,
-  });
 }

@@ -3,7 +3,7 @@
 // DB lookups fall back to the seeded demo accounts if the table is missing or
 // unreachable, so the demo logins always work even before the schema is run.
 
-import { isDbConfigured, dbOne, dbQuery, dbInsert } from "./sql";
+import { isDbConfigured, dbOne, dbQuery, dbInsert, dbWriteError } from "./sql";
 import { hashPassword, verifyPassword, type Role } from "./auth";
 import { uid, nowIso } from "./util";
 
@@ -69,7 +69,11 @@ export async function createUser(input: {
     // demo_password is an app-only field, not a DB column - exclude it.
     const { demo_password, ...row } = user;
     void demo_password;
-    return dbInsert<User>("users", row);
+    try {
+      return await dbInsert<User>("users", row);
+    } catch (e) {
+      throw dbWriteError(e);
+    }
   }
   mem().push(user);
   return user;

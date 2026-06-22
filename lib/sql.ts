@@ -101,3 +101,9 @@ export async function dbCount(table: string, col: string, val: unknown): Promise
   );
   return rows[0]?.count ?? 0;
 }
+
+/** Build a clear, user-facing error for a failed write when Neon is configured. */
+export function dbWriteError(e: unknown): Error {
+  const detail = e instanceof Error ? e.message : "unknown error";
+  return new Error(`Database not reachable — your change was not saved. Make sure DATABASE_URL is set and db/schema.sql has been run. (${detail})`);
+}

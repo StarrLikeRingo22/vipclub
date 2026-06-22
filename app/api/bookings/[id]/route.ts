@@ -26,11 +26,14 @@ export async function PATCH(
     return NextResponse.json({ error: "Valid start time required." }, { status: 400 });
   }
 
-  const booking = await rescheduleBooking(params.id, start.toISOString(), duration);
-  if (!booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
-
-  const notify = await notifyBookingChange(booking, "rescheduled");
-  return NextResponse.json({ booking, notify });
+  try {
+    const booking = await rescheduleBooking(params.id, start.toISOString(), duration);
+    if (!booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    const notify = await notifyBookingChange(booking, "rescheduled");
+    return NextResponse.json({ booking, notify });
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Failed" }, { status: 503 });
+  }
 }
 
 // Cancel (or mark no-show) a booking.
@@ -45,16 +48,20 @@ export async function DELETE(
   const reason = url.searchParams.get("reason") ?? undefined;
   const noShow = url.searchParams.get("no_show") === "1";
 
-  const existing = await getBooking(params.id);
-  if (!existing) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+  try {
+    const existing = await getBooking(params.id);
+    if (!existing) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
 
-  if (noShow) {
-    const booking = await markNoShow(params.id);
-    return NextResponse.json({ booking, notify: { emailStatus: "skipped", smsStatus: "skipped" } });
+    if (noShow) {
+      const booking = await markNoShow(params.id);
+      return NextResponse.json({ booking, notify: { emailStatus: "skipped", smsStatus: "skipped" } });
+    }
+
+    const booking = await cancelBooking(params.id, reason);
+    if (!booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
+    const notify = await notifyBookingChange(booking, "cancelled");
+    return NextResponse.json({ booking, notify });
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : "Failed" }, { status: 503 });
   }
-
-  const booking = await cancelBooking(params.id, reason);
-  if (!booking) return NextResponse.json({ error: "Booking not found" }, { status: 404 });
-  const notify = await notifyBookingChange(booking, "cancelled");
-  return NextResponse.json({ booking, notify });
 }
