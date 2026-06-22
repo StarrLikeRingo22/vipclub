@@ -64,6 +64,62 @@ export function MessageIcon({ filled, ...p }: IconProps) {
   );
 }
 
+export function ListIcon({ filled, ...p }: IconProps) {
+  return (
+    <svg {...base(filled)} {...p}>
+      <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />
+    </svg>
+  );
+}
+
+export function GiftIcon({ filled, ...p }: IconProps) {
+  return (
+    <svg {...base(filled)} {...p}>
+      <path d="M20 12v8a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-8" />
+      <path d="M3 8h18v4H3zM12 21V8" />
+      <path d="M12 8S10.5 4 8 4 6 8 12 8ZM12 8s1.5-4 4-4 2 4-4 4Z" />
+    </svg>
+  );
+}
+
+export function ShareIcon({ filled, ...p }: IconProps) {
+  return (
+    <svg {...base(filled)} {...p}>
+      <circle cx="6" cy="12" r="2.5" />
+      <circle cx="18" cy="6" r="2.5" />
+      <circle cx="18" cy="18" r="2.5" />
+      <path d="M8.2 10.8 15.8 7.2M8.2 13.2l7.6 3.6" />
+    </svg>
+  );
+}
+
+export function ChartIcon({ filled, ...p }: IconProps) {
+  return (
+    <svg {...base(filled)} {...p}>
+      <path d="M4 4v16h16" />
+      <path d="M8 16v-4M12 16V8M16 16v-6" />
+    </svg>
+  );
+}
+
+export function CogIcon({ filled, ...p }: IconProps) {
+  return (
+    <svg {...base(filled)} {...p}>
+      <circle cx="12" cy="12" r="3.2" />
+      <path d="M12 2.5v2M12 19.5v2M21.5 12h-2M4.5 12h-2M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4M18.7 18.7l-1.4-1.4M6.7 6.7 5.3 5.3" />
+    </svg>
+  );
+}
+
+export function PlusIcon(p: SVGProps<SVGSVGElement>) {
+  return (
+    <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round" {...p}>
+      <path d="M12 5v14M5 12h14" />
+    </svg>
+  );
+}
+
 export function CheckIcon(p: SVGProps<SVGSVGElement>) {
   return (
     <svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke="currentColor"
