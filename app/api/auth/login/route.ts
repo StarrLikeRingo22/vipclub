@@ -17,7 +17,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email and password required." }, { status: 400 });
   }
 
-  const user = await verifyCredentials(email, password);
+  let user;
+  try {
+    user = await verifyCredentials(email, password);
+  } catch (e) {
+    const detail = e instanceof Error ? e.message : "unknown error";
+    return NextResponse.json({ error: `Sign-in is temporarily unavailable: ${detail}` }, { status: 503 });
+  }
   if (!user) {
     return NextResponse.json({ error: "Wrong email or password." }, { status: 401 });
   }
