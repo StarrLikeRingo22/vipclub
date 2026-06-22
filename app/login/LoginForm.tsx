@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { DemoButton } from "@/components/DemoButton";
 
 export function LoginForm() {
   const router = useRouter();
@@ -9,6 +10,7 @@ export function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const isDev = process.env.NODE_ENV !== "production";
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,21 +55,32 @@ export function LoginForm() {
       <div className="mb-4">
         <label className={label}>Password</label>
         <input className={field} type="password" value={password}
-          onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+          onChange={(e) => setPassword(e.target.value)} placeholder="Your password" />
       </div>
       {error && <p className="mb-3 text-sm font-semibold text-rose-deep">{error}</p>}
       <button disabled={busy}
         className="btn-primary w-full rounded-2xl px-4 py-3.5 text-base font-bold disabled:opacity-60">
         {busy ? "Signing in…" : "Sign in"}
       </button>
-      <div className="mt-4 flex gap-2">
-        {(["owner", "staff", "admin"] as const).map((r) => (
-          <button key={r} type="button" onClick={() => quick(r)}
-            className="flex-1 rounded-xl border border-line bg-cream px-2 py-2 text-xs font-bold text-ink-soft capitalize">
-            {r}
-          </button>
-        ))}
+
+      <div className="my-4 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">
+        <span className="h-px flex-1 bg-line" />or<span className="h-px flex-1 bg-line" />
       </div>
+      <DemoButton
+        label="Continue with demo account"
+        className="w-full rounded-2xl border-[1.5px] border-line bg-white px-4 py-3 text-sm font-bold text-ink-soft hover:bg-cream"
+      />
+
+      {isDev && (
+        <div className="mt-4 flex gap-2">
+          {(["owner", "staff", "admin"] as const).map((r) => (
+            <button key={r} type="button" onClick={() => quick(r)}
+              className="flex-1 rounded-xl border border-line bg-cream px-2 py-2 text-xs font-bold text-ink-soft capitalize">
+              {r}
+            </button>
+          ))}
+        </div>
+      )}
     </form>
   );
 }

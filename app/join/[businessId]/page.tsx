@@ -22,16 +22,13 @@ export default async function JoinPage({
               Join the<br />VIP Club
             </h1>
             <p className="mt-3 max-w-[280px] text-[15px] text-ink-soft">
-              {business.business_name} · Earn rewards every visit, get reminders when
-              you&apos;re due, and unlock member-only perks.
+              {business.business_name} · Become a member to earn rewards, get appointment
+              reminders, and unlock member-only offers.
             </p>
             <JoinForm businessId={business.id} businessName={business.business_name} />
           </div>
         </div>
       </div>
-      <p className="mt-4 max-w-sm text-center text-xs text-ink-soft">
-        This is the page a customer reaches after scanning the salon&apos;s QR code.
-      </p>
     </main>
   );
 }
