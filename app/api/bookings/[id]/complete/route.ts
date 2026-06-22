@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/session";
 
 export const runtime = "nodejs";
 
-// Owner taps "Done" on a booking → confirm service → log visit.
+// Owner taps "Check out" on a booking -> confirm services -> log visit.
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } },
@@ -20,13 +20,18 @@ export async function POST(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const serviceId = String(body.service_id ?? "");
-  if (!serviceId) {
-    return NextResponse.json({ error: "service_id required" }, { status: 400 });
+  // Accept a list of services (service_ids) or a single service_id.
+  const serviceIds: string[] = Array.isArray(body.service_ids)
+    ? body.service_ids.map((s) => String(s)).filter(Boolean)
+    : body.service_id
+      ? [String(body.service_id)]
+      : [];
+  if (serviceIds.length === 0) {
+    return NextResponse.json({ error: "Select at least one service." }, { status: 400 });
   }
 
   try {
-    const result = await completeBooking(params.id, serviceId);
+    const result = await completeBooking(params.id, serviceIds);
     const visit = result.visit;
     if (visit?.rewardJustEarned && visit.customer.consent_sms) {
       const business = await getBusiness(visit.customer.business_id);

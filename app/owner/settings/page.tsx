@@ -22,7 +22,7 @@ export default async function SettingsPage() {
       rewardThreshold={business?.reward_threshold ?? 5}
       reminderDays={business?.default_reminder_days ?? 35}
       bookingUrl={business?.booking_url ?? ""}
-      services={services.map((s) => ({ name: s.name, price: s.price, emoji: s.emoji }))}
+      services={services.map((s) => ({ name: s.name, price: s.price, category: s.category, duration_min: s.duration_min }))}
       staff={staff.map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role }))}
       canManageStaff={session.role === "owner"}
     />

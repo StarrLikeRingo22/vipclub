@@ -88,13 +88,13 @@ export function bookingEmailHtml(opts: {
   <div style="font-family:Segoe UI,Arial,sans-serif;max-width:520px;margin:0 auto;color:#3A2C30">
     <div style="text-align:center;padding:24px 0">
       <div style="font-size:13px;letter-spacing:3px;color:#C9A24B;font-weight:700">VIP CLUB</div>
-      <h1 style="font-size:22px;margin:8px 0 0">You're booked, ${first} ✨</h1>
+      <h1 style="font-size:22px;margin:8px 0 0">You're booked, ${first}</h1>
     </div>
     <div style="background:#FCEEF0;border-radius:16px;padding:20px;margin-bottom:16px">
       <p style="margin:0 0 6px"><b>${opts.service}</b></p>
-      <p style="margin:0 0 6px">🗓️ ${opts.whenText}</p>
-      <p style="margin:0 0 6px">📍 ${opts.location}</p>
-      <p style="margin:0">💈 ${opts.salon}</p>
+      <p style="margin:0 0 6px">When: ${opts.whenText}</p>
+      <p style="margin:0 0 6px">Where: ${opts.location}</p>
+      <p style="margin:0">${opts.salon}</p>
     </div>
     <p style="font-size:14px;color:#7A6A6E">Add it to your calendar so you don't miss it:</p>
     <p>

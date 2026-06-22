@@ -46,13 +46,13 @@ export default function AdminPage() {
   }
 
   const t = stats.totals;
-  const kpis: [string, string | number, string][] = [
-    ["Shops", t.businesses, "🏪"],
-    ["VIP members", t.members.toLocaleString(), "👥"],
-    ["Returning rate", t.returning_rate + "%", "🔁"],
-    ["Visits tracked", t.visits.toLocaleString(), "✅"],
-    ["New this month", t.new_this_month.toLocaleString(), "✨"],
-    ["Messages sent", t.messages.toLocaleString(), "✉️"],
+  const kpis: [string, string | number][] = [
+    ["Shops", t.businesses],
+    ["VIP members", t.members.toLocaleString()],
+    ["Returning rate", t.returning_rate + "%"],
+    ["Visits tracked", t.visits.toLocaleString()],
+    ["New this month", t.new_this_month.toLocaleString()],
+    ["Messages sent", t.messages.toLocaleString()],
   ];
 
   return (
@@ -73,11 +73,10 @@ export default function AdminPage() {
 
       {/* KPI grid */}
       <div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        {kpis.map(([label, val, icon]) => (
+        {kpis.map(([label, val]) => (
           <div key={label} className="card-shadow rounded-2xl border border-line bg-white p-4">
-            <div className="text-xl">{icon}</div>
-            <div className="mt-2 text-2xl font-bold text-rose-deep">{val}</div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide text-ink-soft">{label}</div>
+            <div className="text-2xl font-bold text-rose-deep">{val}</div>
+            <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">{label}</div>
           </div>
         ))}
       </div>
@@ -114,7 +113,7 @@ export default function AdminPage() {
                 </div>
               </div>
               {i === 0 && sort === "returning" && (
-                <span className="rounded-full bg-gold-soft px-2.5 py-1 text-[11px] font-bold text-[#7a5e1d]">🏆 Top</span>
+                <span className="rounded-full bg-gold-soft px-2.5 py-1 text-[11px] font-bold text-[#7a5e1d]">Top</span>
               )}
             </div>
 
@@ -147,7 +146,7 @@ export default function AdminPage() {
 
             <div className="mt-3 flex items-center justify-between text-xs text-ink-soft">
               <span>Avg {s.avg_visits} visits / member</span>
-              <span>✉️ {s.messages_sent.toLocaleString()} sent</span>
+              <span>{s.messages_sent.toLocaleString()} messages sent</span>
             </div>
           </div>
         ))}
@@ -155,7 +154,7 @@ export default function AdminPage() {
 
       <p className="mt-7 text-xs text-ink-soft">
         Live from the API across every shop. The north-star metric is{" "}
-        <b className="text-ink">returning customer rate</b> — repeat visits generated. Connect Supabase for
+        <b className="text-ink">returning customer rate</b> — repeat visits generated. Connect Neon for
         persistent, platform-wide history.
       </p>
     </main>

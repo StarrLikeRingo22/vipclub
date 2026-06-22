@@ -1,6 +1,6 @@
 // Reschedule / cancel / no-show + customer notifications (email .ics + SMS).
 import type { Booking } from "./types";
-import { isSupabaseConfigured, supabase } from "./supabase";
+import { isDbConfigured, dbUpdate } from "./sql";
 import { db as mem } from "./store";
 import { getBooking, getBusiness, getCustomer, listServices } from "./db";
 import { timeLabel } from "./bookings";
@@ -10,7 +10,7 @@ import { sendEmail, bookingEmailHtml, toBase64 } from "./email";
 import { sendSms } from "./sms";
 import { baseUrl } from "./util";
 
-const useSb = isSupabaseConfigured;
+const useDb = isDbConfigured;
 
 function memUpdate(id: string, patch: Partial<Booking>): Booking | null {
   const b = mem().bookings.find((x) => x.id === id);
@@ -31,9 +31,8 @@ export async function rescheduleBooking(
     seq: (current.seq ?? 0) + 1,
     ...(durationMin ? { duration_min: durationMin } : {}),
   };
-  if (useSb) {
-    const { data } = await supabase().from("bookings").update(patch).eq("id", id).select().single();
-    return (data as Booking) ?? null;
+  if (useDb) {
+    return dbUpdate<Booking>("bookings", id, patch);
   }
   return memUpdate(id, patch);
 }
@@ -46,18 +45,16 @@ export async function cancelBooking(id: string, reason?: string): Promise<Bookin
     seq: (current.seq ?? 0) + 1,
     cancel_reason: reason ?? null,
   };
-  if (useSb) {
-    const { data } = await supabase().from("bookings").update(patch).eq("id", id).select().single();
-    return (data as Booking) ?? null;
+  if (useDb) {
+    return dbUpdate<Booking>("bookings", id, patch);
   }
   return memUpdate(id, patch);
 }
 
 export async function markNoShow(id: string): Promise<Booking | null> {
   const patch: Partial<Booking> = { status: "cancelled", cancel_reason: "no-show" };
-  if (useSb) {
-    const { data } = await supabase().from("bookings").update(patch).eq("id", id).select().single();
-    return (data as Booking) ?? null;
+  if (useDb) {
+    return dbUpdate<Booking>("bookings", id, patch);
   }
   return memUpdate(id, patch);
 }
@@ -110,7 +107,7 @@ export async function notifyBookingChange(booking: Booking, kind: ChangeKind): P
         ? `Updated: your booking at ${salon} — ${whenText}`
         : `Your booking at ${salon} — ${whenText}`;
     const html = cancelled
-      ? `<div style="font-family:Segoe UI,Arial,sans-serif;max-width:520px;margin:0 auto;color:#3A2C30"><h2>Booking cancelled</h2><p>Hi ${first}, your ${serviceName} at ${salon} (${whenText}) has been cancelled. The attached file removes it from your calendar. Hope to see you again soon 💕</p></div>`
+      ? `<div style="font-family:Segoe UI,Arial,sans-serif;max-width:520px;margin:0 auto;color:#3A2C30"><h2>Booking cancelled</h2><p>Hi ${first}, your ${serviceName} at ${salon} (${whenText}) has been cancelled. The attached file removes it from your calendar. Hope to see you again soon.</p></div>`
       : bookingEmailHtml({
           customerName: customer.full_name, salon, service: serviceName,
           whenText: kind === "rescheduled" ? `${whenText} (updated)` : whenText,
@@ -130,8 +127,8 @@ export async function notifyBookingChange(booking: Booking, kind: ChangeKind): P
     const body = cancelled
       ? `Hi ${first}, your ${serviceName} at ${salon} on ${whenText} has been cancelled. Reply or visit ${business?.booking_url ?? ""} to rebook.`
       : kind === "rescheduled"
-        ? `Hi ${first}, your ${serviceName} at ${salon} is now ${whenText}. See you then! 💈`
-        : `Hi ${first}, you're booked for ${serviceName} at ${salon} on ${whenText}. 💕`;
+        ? `Hi ${first}, your ${serviceName} at ${salon} is now ${whenText}. See you then!`
+        : `Hi ${first}, you're booked for ${serviceName} at ${salon} on ${whenText}.`;
     const res = await sendSms(customer.phone, body);
     smsStatus = res.status;
   }

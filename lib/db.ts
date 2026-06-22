@@ -1,30 +1,28 @@
 // Public data-access API used by route handlers.
-// Chooses Supabase when configured, otherwise the in-memory store.
+// Chooses Neon (Postgres) when DATABASE_URL is set, otherwise the in-memory store.
 
 import type {
   Business, Service, Customer, Visit, Booking, Message, Campaign,
   SignupInput, BusinessStats, MessageType,
 } from "./types";
-import { isSupabaseConfigured, supabase } from "./supabase";
+import { isDbConfigured, dbQuery, dbOne, dbInsert, dbUpdate, dbCount } from "./sql";
 import { db as mem, applyVisit, redeemReward } from "./store";
 import { uid, memberCode, nowIso, daysAgo } from "./util";
 
-const useSb = isSupabaseConfigured;
+const useDb = isDbConfigured;
 
 // ── Businesses ──────────────────────────────────────────────────
 
 export async function getBusiness(id: string): Promise<Business | null> {
-  if (useSb) {
-    const { data } = await supabase().from("businesses").select("*").eq("id", id).maybeSingle();
-    return (data as Business) ?? null;
+  if (useDb) {
+    return dbOne<Business>("select * from businesses where id = $1", [id]);
   }
   return mem().businesses.find((b) => b.id === id) ?? null;
 }
 
 export async function listBusinesses(): Promise<Business[]> {
-  if (useSb) {
-    const { data } = await supabase().from("businesses").select("*").order("created_at");
-    return (data as Business[]) ?? [];
+  if (useDb) {
+    return dbQuery<Business>("select * from businesses order by created_at");
   }
   return mem().businesses;
 }
@@ -32,17 +30,15 @@ export async function listBusinesses(): Promise<Business[]> {
 // ── Services ────────────────────────────────────────────────────
 
 export async function listServices(businessId: string): Promise<Service[]> {
-  if (useSb) {
-    const { data } = await supabase().from("services").select("*").eq("business_id", businessId);
-    return (data as Service[]) ?? [];
+  if (useDb) {
+    return dbQuery<Service>("select * from services where business_id = $1 order by name", [businessId]);
   }
   return mem().services.filter((s) => s.business_id === businessId);
 }
 
 async function getService(id: string): Promise<Service | null> {
-  if (useSb) {
-    const { data } = await supabase().from("services").select("*").eq("id", id).maybeSingle();
-    return (data as Service) ?? null;
+  if (useDb) {
+    return dbOne<Service>("select * from services where id = $1", [id]);
   }
   return mem().services.find((s) => s.id === id) ?? null;
 }
@@ -50,19 +46,18 @@ async function getService(id: string): Promise<Service | null> {
 // ── Customers ───────────────────────────────────────────────────
 
 export async function listCustomers(businessId: string): Promise<Customer[]> {
-  if (useSb) {
-    const { data } = await supabase()
-      .from("customers").select("*").eq("business_id", businessId)
-      .order("created_at", { ascending: false });
-    return (data as Customer[]) ?? [];
+  if (useDb) {
+    return dbQuery<Customer>(
+      "select * from customers where business_id = $1 order by created_at desc",
+      [businessId],
+    );
   }
   return [...mem().customers].filter((c) => c.business_id === businessId);
 }
 
 export async function getCustomer(id: string): Promise<Customer | null> {
-  if (useSb) {
-    const { data } = await supabase().from("customers").select("*").eq("id", id).maybeSingle();
-    return (data as Customer) ?? null;
+  if (useDb) {
+    return dbOne<Customer>("select * from customers where id = $1", [id]);
   }
   return mem().customers.find((c) => c.id === id) ?? null;
 }
@@ -85,21 +80,19 @@ export async function createCustomer(input: SignupInput): Promise<Customer> {
     created_at: nowIso(),
   };
 
-  if (useSb) {
-    const { data, error } = await supabase().from("customers").insert(customer).select().single();
-    if (error) throw new Error(error.message);
-    return data as Customer;
+  if (useDb) {
+    return dbInsert<Customer>("customers", customer);
   }
   mem().customers.unshift(customer);
   return customer;
 }
 
 export async function listVisits(customerId: string): Promise<Visit[]> {
-  if (useSb) {
-    const { data } = await supabase()
-      .from("visits").select("*").eq("customer_id", customerId)
-      .order("created_at", { ascending: false }).limit(10);
-    return (data as Visit[]) ?? [];
+  if (useDb) {
+    return dbQuery<Visit>(
+      "select * from visits where customer_id = $1 order by created_at desc limit 10",
+      [customerId],
+    );
   }
   return mem().visits.filter((v) => v.customer_id === customerId);
 }
@@ -120,7 +113,7 @@ export async function addVisit(
   const business = await businessForCustomer(customerId);
   const threshold = business?.reward_threshold ?? 5;
 
-  if (useSb) {
+  if (useDb) {
     const customer = await getCustomer(customerId);
     if (!customer) throw new Error("Customer not found");
     const newPoints = customer.points_balance + 1;
@@ -132,17 +125,16 @@ export async function addVisit(
       status: "active" as const,
       reward_status: (ready ? "ready" : "earning") as Customer["reward_status"],
     };
-    const { data: updated, error } = await supabase()
-      .from("customers").update(patch).eq("id", customerId).select().single();
-    if (error) throw new Error(error.message);
+    const updated = await dbUpdate<Customer>("customers", customerId, patch);
+    if (!updated) throw new Error("Customer not found");
     const visit: Visit = {
       id: uid("vis_"), business_id: customer.business_id, customer_id: customerId,
       service_id: null, service_name: serviceName, amount_spent: amount,
       points_added: 1, source: "booking", visit_date: nowIso(), created_at: nowIso(),
     };
-    await supabase().from("visits").insert(visit);
+    await dbInsert<Visit>("visits", visit);
     return {
-      customer: updated as Customer,
+      customer: updated,
       visit,
       rewardJustEarned: ready && newPoints === threshold,
     };
@@ -154,12 +146,11 @@ export async function addVisit(
 }
 
 export async function redeem(customerId: string): Promise<Customer | null> {
-  if (useSb) {
-    const { data } = await supabase()
-      .from("customers")
-      .update({ points_balance: 0, reward_status: "redeemed" })
-      .eq("id", customerId).select().single();
-    return (data as Customer) ?? null;
+  if (useDb) {
+    return dbUpdate<Customer>("customers", customerId, {
+      points_balance: 0,
+      reward_status: "redeemed",
+    });
   }
   const c = mem().customers.find((x) => x.id === customerId);
   return c ? redeemReward(c) : null;
@@ -168,18 +159,18 @@ export async function redeem(customerId: string): Promise<Customer | null> {
 // ── Bookings ────────────────────────────────────────────────────
 
 export async function listBookings(businessId: string): Promise<Booking[]> {
-  if (useSb) {
-    const { data } = await supabase()
-      .from("bookings").select("*").eq("business_id", businessId).order("time_label");
-    return (data as Booking[]) ?? [];
+  if (useDb) {
+    return dbQuery<Booking>(
+      "select * from bookings where business_id = $1 order by time_label",
+      [businessId],
+    );
   }
   return mem().bookings.filter((b) => b.business_id === businessId);
 }
 
 export async function getBooking(id: string): Promise<Booking | null> {
-  if (useSb) {
-    const { data } = await supabase().from("bookings").select("*").eq("id", id).maybeSingle();
-    return (data as Booking) ?? null;
+  if (useDb) {
+    return dbOne<Booking>("select * from bookings where id = $1", [id]);
   }
   return mem().bookings.find((b) => b.id === id) ?? null;
 }
@@ -193,24 +184,29 @@ export interface CompleteResult {
 
 export async function completeBooking(
   bookingId: string,
-  serviceId: string,
+  serviceIds: string[],
 ): Promise<CompleteResult> {
   const booking = await getBooking(bookingId);
   if (!booking) throw new Error("Booking not found");
-  const service = await getService(serviceId);
-  const serviceName = service?.name ?? "Service";
-  const amount = service?.price ?? 0;
 
-  if (useSb) {
-    await supabase().from("bookings")
-      .update({ status: "done", service_id: serviceId }).eq("id", bookingId);
+  const all = await listServices(booking.business_id);
+  const chosen = serviceIds
+    .map((id) => all.find((s) => s.id === id))
+    .filter((s): s is Service => Boolean(s));
+
+  const serviceName = chosen.length ? chosen.map((s) => s.name).join(", ") : "Service";
+  const amount = chosen.reduce((a, s) => a + s.price, 0);
+  const joinedId = serviceIds.join(",");
+
+  if (useDb) {
+    await dbUpdate("bookings", bookingId, { status: "done", service_id: joinedId });
   } else {
     booking.status = "done";
-    booking.service_id = serviceId;
+    booking.service_id = joinedId;
   }
 
   const visit = await addVisit(booking.customer_id, serviceName, amount);
-  return { booking, amount, service, visit };
+  return { booking, amount, service: chosen[0] ?? null, visit };
 }
 
 // ── Messages + campaigns ────────────────────────────────────────
@@ -227,8 +223,8 @@ export async function recordMessage(
     id: uid("msg_"), business_id: businessId, customer_id: customerId,
     message_type: type, body, status, provider_sid: sid, sent_at: nowIso(),
   };
-  if (useSb) {
-    await supabase().from("messages").insert(msg);
+  if (useDb) {
+    await dbInsert<Message>("messages", msg);
   } else {
     mem().messages.unshift(msg);
   }
@@ -247,8 +243,8 @@ export async function createCampaign(
     audience_type: audience, message_body: body, sent_count: sentCount,
     created_at: nowIso(),
   };
-  if (useSb) {
-    await supabase().from("campaigns").insert(campaign);
+  if (useDb) {
+    await dbInsert<Campaign>("campaigns", campaign);
   } else {
     mem().campaigns.unshift(campaign);
   }
@@ -277,13 +273,13 @@ export async function businessStats(): Promise<BusinessStats[]> {
     const customers = await listCustomers(b.id);
     const members = customers.length;
     // Total visits = logged visit rows + each member's running visit_count.
-    const loggedVisits = useSb
-      ? ((await supabase().from("visits").select("id", { count: "exact", head: true }).eq("business_id", b.id)).count ?? 0)
+    const loggedVisits = useDb
+      ? await dbCount("visits", "business_id", b.id)
       : mem().visits.filter((v) => v.business_id === b.id).length;
     const totalVisits = customers.reduce((a, c) => a + c.visit_count, 0) + loggedVisits;
     const returning = customers.filter((c) => c.visit_count >= 2).length;
-    const messages = useSb
-      ? ((await supabase().from("messages").select("id", { count: "exact", head: true }).eq("business_id", b.id)).count ?? 0)
+    const messages = useDb
+      ? await dbCount("messages", "business_id", b.id)
       : mem().messages.filter((m) => m.business_id === b.id).length;
     const newThisMonth = customers.filter((c) => (daysAgo(c.created_at) ?? 999) <= 30).length;
     out.push({

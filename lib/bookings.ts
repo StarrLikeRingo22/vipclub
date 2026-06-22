@@ -1,10 +1,10 @@
 // Booking creation (scheduling). New module so the core db.ts stays untouched.
 import type { Booking } from "./types";
-import { isSupabaseConfigured, supabase } from "./supabase";
+import { isDbConfigured, dbInsert } from "./sql";
 import { db as mem } from "./store";
 import { uid, nowIso } from "./util";
 
-const useSb = isSupabaseConfigured;
+const useDb = isDbConfigured;
 
 export interface NewBooking {
   business_id: string;
@@ -40,10 +40,8 @@ export async function createBooking(input: NewBooking): Promise<Booking> {
     notes: input.notes ?? null,
     customer_email: input.customer_email ?? null,
   };
-  if (useSb) {
-    const { data, error } = await supabase().from("bookings").insert(booking).select().single();
-    if (error) throw new Error(error.message);
-    return data as Booking;
+  if (useDb) {
+    return dbInsert<Booking>("bookings", booking);
   }
   mem().bookings.push(booking);
   return booking;

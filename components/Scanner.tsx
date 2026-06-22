@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { Customer } from "@/lib/types";
+import { ScanIcon } from "./Icons";
 
 // Staff scanner. Uses the on-device BarcodeDetector (Android Chrome/Edge) for a
 // true in-app scan; everywhere else it falls back to "use your camera app" plus
@@ -98,14 +99,14 @@ export function Scanner({ members }: { members: Customer[] }) {
             <div className="absolute right-3 top-3 h-8 w-8 rounded-tr-xl border-r-4 border-t-4 border-gold" />
             <div className="absolute bottom-3 left-3 h-8 w-8 rounded-bl-xl border-b-4 border-l-4 border-gold" />
             <div className="absolute bottom-3 right-3 h-8 w-8 rounded-br-xl border-b-4 border-r-4 border-gold" />
-            <span className="text-4xl">📷</span>
+            <ScanIcon width={44} height={44} className="text-gold" />
           </div>
         )}
         <button
           onClick={() => setScanning((s) => !s)}
           className="btn-primary mx-auto mt-4 w-full max-w-[240px] rounded-2xl px-4 py-3 text-sm font-bold"
         >
-          {scanning ? "Stop camera" : supported ? "📷 Start camera scan" : "📷 Try camera scan"}
+          {scanning ? "Stop camera" : supported ? "Start camera scan" : "Try camera scan"}
         </button>
         <p className="mt-3 text-xs text-[#9a8a8e]">
           {supported
@@ -118,7 +119,7 @@ export function Scanner({ members }: { members: Customer[] }) {
       <p className="mb-2 mt-6 text-xs font-bold uppercase tracking-wide text-ink-soft">
         Or pick the member
       </p>
-      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="🔍 Search members…"
+      <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search members…"
         className="card-shadow mb-2 w-full rounded-xl border border-line bg-white px-4 py-3 text-[15px]" />
       <div className="card-shadow max-h-72 overflow-y-auto rounded-2xl border border-line bg-white px-4">
         {filtered.slice(0, 25).map((m) => (
@@ -132,7 +133,7 @@ export function Scanner({ members }: { members: Customer[] }) {
               <b className="block text-[14px]">{m.full_name}</b>
               <span className="text-xs text-ink-soft">#{m.customer_code}</span>
             </div>
-            <span className="text-rose-deep">›</span>
+            <span className="text-rose-deep">&rsaquo;</span>
           </a>
         ))}
       </div>

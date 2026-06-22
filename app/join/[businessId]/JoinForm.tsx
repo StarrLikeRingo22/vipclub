@@ -86,12 +86,12 @@ export function JoinForm({
           onChange={(e) => set("email", e.target.value)} placeholder="you@email.com" />
       </div>
       <div className="mb-3">
-        <label className={label}>Birthday (optional) 🎂</label>
+        <label className={label}>Birthday (optional)</label>
         <input className={field} value={form.birthday}
           onChange={(e) => set("birthday", e.target.value)} placeholder="MM / DD" />
       </div>
       <div className="mb-3">
-        <label className={label}>Referral code (optional) 💝</label>
+        <label className={label}>Referral code (optional)</label>
         <input className={field} value={form.referral_code}
           onChange={(e) => set("referral_code", e.target.value)} placeholder="Friend's VIP code" />
       </div>
@@ -103,7 +103,7 @@ export function JoinForm({
       {error && <p className="mb-3 text-sm font-semibold text-rose-deep">{error}</p>}
       <button disabled={loading}
         className="btn-primary w-full rounded-2xl px-4 py-4 text-base font-bold disabled:opacity-60">
-        {loading ? "Joining…" : "Join the VIP Club ✨"}
+        {loading ? "Joining…" : "Join the VIP Club"}
       </button>
     </form>
   );

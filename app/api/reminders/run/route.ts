@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     for (const c of due) {
       const first = c.full_name.split(" ")[0];
       const body =
-        `Hey ${first}, you're probably due for a fresh look 👀 ` +
+        `Hey ${first}, you're probably due for a fresh look. ` +
         `You're getting closer to your next VIP reward at ${b.business_name}. ` +
         `Book here: ${b.booking_url}`;
       const res = await sendSms(c.phone, body);

@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Customer, Service } from "@/lib/types";
 import { Crest } from "@/components/Crest";
 import { RewardRing } from "@/components/RewardRing";
+import { ServicePicker, toggleInSet } from "@/components/ServicePicker";
 
 export function CheckinClient({
   customer: initial,
@@ -17,13 +18,16 @@ export function CheckinClient({
   services: Service[];
 }) {
   const [customer, setCustomer] = useState(initial);
-  const [svcId, setSvcId] = useState(services[0]?.id ?? "");
+  const [selected, setSelected] = useState<Set<string>>(new Set(services[0] ? [services[0].id] : []));
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState("");
 
-  const service = services.find((s) => s.id === svcId);
+  const toggle = (id: string) => setSelected((prev) => toggleInSet(prev, id));
+  const chosen = services.filter((s) => selected.has(s.id));
+  const total = chosen.reduce((a, s) => a + s.price, 0);
 
   async function addVisit() {
+    if (selected.size === 0) return;
     setBusy(true);
     setMsg("");
     try {
@@ -31,8 +35,8 @@ export function CheckinClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          service_name: service?.name ?? "Visit",
-          amount: service?.price ?? 0,
+          service_name: chosen.map((s) => s.name).join(", ") || "Visit",
+          amount: total,
         }),
       });
       const data = await res.json();
@@ -40,8 +44,8 @@ export function CheckinClient({
       setCustomer(data.customer);
       setMsg(
         data.rewardJustEarned
-          ? "🎁 Reward unlocked! A free service is now ready."
-          : "✓ Visit added — synced to their VIP pass.",
+          ? "Reward unlocked. A free service is now ready."
+          : "Visit added — synced to their VIP pass.",
       );
     } catch (e) {
       setMsg(e instanceof Error ? e.message : "Failed");
@@ -75,33 +79,18 @@ export function CheckinClient({
           </div>
 
           <p className="mb-2 mt-5 text-xs font-bold uppercase tracking-wide text-ink-soft">
-            Service performed
+            Services performed
           </p>
-          <div className="card-shadow grid grid-cols-2 gap-2 rounded-2xl border border-line bg-white p-2">
-            {services.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => setSvcId(s.id)}
-                className={
-                  "rounded-xl border-[1.5px] p-3 text-left transition " +
-                  (s.id === svcId
-                    ? "border-rose-deep bg-[#FFF5F6]"
-                    : "border-transparent")
-                }
-              >
-                <div className="text-lg">{s.emoji}</div>
-                <div className="text-[13px] font-bold leading-tight">{s.name}</div>
-                <div className="text-xs text-rose-deep font-bold">${s.price}</div>
-              </button>
-            ))}
+          <div className="card-shadow rounded-2xl border border-line bg-white p-2">
+            <ServicePicker services={services} selected={selected} toggle={toggle} maxHeightClass="max-h-[260px]" />
           </div>
 
           <button
             onClick={addVisit}
-            disabled={busy}
-            className="btn-primary mt-4 rounded-2xl px-4 py-4 text-base font-bold disabled:opacity-60"
+            disabled={busy || selected.size === 0}
+            className="btn-primary mt-4 rounded-2xl px-4 py-4 text-base font-bold disabled:opacity-50"
           >
-            {busy ? "Logging…" : `＋ Add Visit · ${service ? "$" + service.price : ""}`}
+            {busy ? "Logging…" : `Add visit${total ? " · $" + total : ""}`}
           </button>
 
           {msg && (

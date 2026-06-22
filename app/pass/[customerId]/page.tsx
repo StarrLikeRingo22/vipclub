@@ -31,7 +31,7 @@ export default async function PassPage({
         <div className="screen flex min-h-[760px] flex-col px-5 py-7">
           {welcome && (
             <div className="mb-3 rounded-2xl bg-[#E2F1EA] px-4 py-3 text-center text-sm font-semibold text-[#3c7a62]">
-              🎉 You&apos;re in! Your VIP pass is ready — and we&apos;ve texted you the link.
+              You&apos;re in! Your VIP pass is ready — and we&apos;ve texted you the link.
             </div>
           )}
 
@@ -68,7 +68,6 @@ export default async function PassPage({
 
           {/* Referral */}
           <div className="card-shadow mt-4 flex items-center gap-3 rounded-2xl border border-line bg-white p-4">
-            <div className="text-2xl">💝</div>
             <div className="flex-1">
               <p className="text-[13px] font-bold leading-tight">Refer a friend</p>
               <p className="text-xs text-ink-soft">
@@ -83,7 +82,7 @@ export default async function PassPage({
 
           <p className="mx-auto mt-4 max-w-[280px] text-center text-xs text-ink-soft">
             You can&apos;t change your own points — only the salon can, by scanning. Keeps it
-            fair &amp; safe 🔒
+            fair and safe.
           </p>
         </div>
       </div>

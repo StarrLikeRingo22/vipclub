@@ -35,10 +35,10 @@ export async function sendSms(to: string, body: string): Promise<SendResult> {
 
 export function welcomeMessage(name: string, salon: string, passUrl: string): string {
   const first = name.split(" ")[0];
-  return `Welcome to the VIP Club, ${first}! 💕 You're officially in at ${salon}. Here's your VIP pass — show it at checkout to earn rewards: ${passUrl}`;
+  return `Welcome to the VIP Club, ${first}! You're officially in at ${salon}. Here's your VIP pass — show it at checkout to earn rewards: ${passUrl}`;
 }
 
 export function rewardReadyMessage(name: string, salon: string): string {
   const first = name.split(" ")[0];
-  return `🎁 Reward unlocked, ${first}! You've earned a free service at ${salon}. Show your VIP pass on your next visit to redeem.`;
+  return `Reward unlocked, ${first}! You've earned a free service at ${salon}. Show your VIP pass on your next visit to redeem.`;
 }

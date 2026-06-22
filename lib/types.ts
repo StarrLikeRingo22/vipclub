@@ -1,4 +1,4 @@
-// ── Core domain types (mirror the Supabase schema) ──────────────
+// ── Core domain types (mirror the Neon schema) ──────────────────
 
 export type CustomerStatus = "active" | "inactive" | "unsubscribed";
 export type RewardStatus = "earning" | "ready" | "redeemed";
@@ -23,9 +23,10 @@ export interface Business {
 export interface Service {
   id: string;
   business_id: string;
-  emoji: string;
+  category: string;
   name: string;
   price: number;
+  duration_min: number;
 }
 
 export interface Customer {

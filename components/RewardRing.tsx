@@ -1,4 +1,5 @@
 // Reward progress ring + dots. Pure presentational.
+import { CheckIcon } from "./Icons";
 
 export function RewardRing({
   visits,
@@ -42,7 +43,7 @@ export function RewardRing({
             </b>
           )}
           <span className="mt-1 text-[11px] font-bold uppercase tracking-wider text-ink-soft">
-            {ready ? "ready 🎁" : "visits"}
+            {ready ? "ready" : "visits"}
           </span>
         </div>
       </div>
@@ -59,15 +60,15 @@ export function RewardRing({
             }
             style={i < shown ? { background: "linear-gradient(135deg,#E8D29A,#C9A24B)" } : undefined}
           >
-            {i < shown ? "✓" : i + 1}
+            {i < shown ? <CheckIcon width={13} height={13} /> : i + 1}
           </div>
         ))}
       </div>
 
       <p className="mt-3.5 text-center text-sm font-bold text-rose-deep">
         {ready
-          ? "🎁 Reward ready — enjoy a free service!"
-          : `${remaining} more visit${remaining > 1 ? "s" : ""} until your reward 💈`}
+          ? "Reward ready — enjoy a free service!"
+          : `${remaining} more visit${remaining > 1 ? "s" : ""} until your reward`}
       </p>
     </div>
   );

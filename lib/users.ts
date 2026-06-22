@@ -1,7 +1,7 @@
 // Users (owner / staff / admin) — login accounts.
-// Memory store by default; Supabase `users` table when configured.
+// Memory store by default; Neon `users` table when DATABASE_URL is set.
 
-import { isSupabaseConfigured, supabase } from "./supabase";
+import { isDbConfigured, dbOne, dbQuery, dbInsert } from "./sql";
 import { hashPassword, verifyPassword, type Role } from "./auth";
 import { uid, nowIso } from "./util";
 
@@ -16,7 +16,7 @@ export interface User {
   created_at: string;
 }
 
-const useSb = isSupabaseConfigured;
+const useDb = isDbConfigured;
 
 // Demo accounts (work with the zero-config in-memory backend).
 const DEMO_USERS: User[] = [
@@ -33,9 +33,8 @@ function mem(): User[] {
 
 export async function getUserByEmail(email: string): Promise<User | null> {
   const e = email.trim().toLowerCase();
-  if (useSb) {
-    const { data } = await supabase().from("users").select("*").eq("email", e).maybeSingle();
-    return (data as User) ?? null;
+  if (useDb) {
+    return dbOne<User>("select * from users where email = $1", [e]);
   }
   return mem().find((u) => u.email.toLowerCase() === e) ?? null;
 }
@@ -49,19 +48,19 @@ export async function createUser(input: {
     email: input.email.trim().toLowerCase(), role: input.role,
     password_hash, demo_password: null, created_at: nowIso(),
   };
-  if (useSb) {
-    const { data, error } = await supabase().from("users").insert(user).select().single();
-    if (error) throw new Error(error.message);
-    return data as User;
+  if (useDb) {
+    // demo_password is an app-only field, not a DB column — exclude it.
+    const { demo_password, ...row } = user;
+    void demo_password;
+    return dbInsert<User>("users", row);
   }
   mem().push(user);
   return user;
 }
 
 export async function listStaff(businessId: string): Promise<User[]> {
-  if (useSb) {
-    const { data } = await supabase().from("users").select("*").eq("business_id", businessId);
-    return (data as User[]) ?? [];
+  if (useDb) {
+    return dbQuery<User>("select * from users where business_id = $1", [businessId]);
   }
   return mem().filter((u) => u.business_id === businessId);
 }

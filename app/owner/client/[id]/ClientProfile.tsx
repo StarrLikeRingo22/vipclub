@@ -24,7 +24,7 @@ export function ClientProfile({
   reminderDays: number;
 }) {
   const [customer, setCustomer] = useState(initial);
-  const [visits, setVisits] = useState(initialVisits);
+  const [visits] = useState(initialVisits);
   const [notes, setNotes] = useState(initial.notes ?? "");
   const [toast, setToast] = useState("");
 
@@ -37,7 +37,7 @@ export function ClientProfile({
       method: "PATCH", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ notes }),
     });
-    if (res.ok) { setCustomer((c) => ({ ...c, notes })); flash("Notes saved ✓"); }
+    if (res.ok) { setCustomer((c) => ({ ...c, notes })); flash("Notes saved."); }
   }
   async function setStatus(status: "active" | "inactive") {
     const res = await fetch(`/api/clients/${customer.id}`, {
@@ -50,7 +50,7 @@ export function ClientProfile({
   async function redeem() {
     const res = await fetch(`/api/customers/${customer.id}/redeem`, { method: "POST" });
     const d = await res.json();
-    if (res.ok) { setCustomer(d.customer); flash("Reward redeemed 🎉"); }
+    if (res.ok) { setCustomer(d.customer); flash("Reward redeemed."); }
     else flash(d.error || "Failed");
   }
 
@@ -58,7 +58,7 @@ export function ClientProfile({
     <main className="flex min-h-screen flex-col items-center px-4 py-8">
       <div className="w-full max-w-md">
         <div className="mb-4 flex items-center gap-3">
-          <Link href="/owner" className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-white">‹</Link>
+          <Link href="/owner" className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-white text-lg text-ink-soft">&larr;</Link>
           <div className="flex items-center gap-2"><Crest size={26} /><b>Client profile</b></div>
         </div>
 
@@ -80,7 +80,7 @@ export function ClientProfile({
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-2">
-          <Link href={`/checkin/${customer.id}`} className="btn-primary rounded-2xl px-4 py-3 text-center text-sm font-bold">＋ Add Visit</Link>
+          <Link href={`/checkin/${customer.id}`} className="btn-primary rounded-2xl px-4 py-3 text-center text-sm font-bold">Add visit</Link>
           <button onClick={redeem} disabled={customer.reward_status !== "ready"}
             className="rounded-2xl border-[1.5px] border-rose-soft bg-white px-4 py-3 text-sm font-bold text-rose-deep disabled:opacity-50">
             Redeem reward

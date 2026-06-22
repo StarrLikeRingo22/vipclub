@@ -22,13 +22,17 @@ export async function POST(req: NextRequest) {
 
   const business_id = String(body.business_id ?? auth.session.businessId ?? "");
   const customer_id = String(body.customer_id ?? "");
-  const service_id = String(body.service_id ?? "");
+  // Accept a list of services (service_ids) or a single service_id.
+  const serviceIds: string[] = Array.isArray(body.service_ids)
+    ? body.service_ids.map((s) => String(s)).filter(Boolean)
+    : body.service_id
+      ? [String(body.service_id)]
+      : [];
   const startsAt = String(body.starts_at ?? "");
-  const duration_min = Number(body.duration_min ?? 45) || 45;
   const notes = body.notes ? String(body.notes) : null;
 
-  if (!business_id || !customer_id || !service_id || !startsAt) {
-    return NextResponse.json({ error: "business, customer, service and start time are required." }, { status: 400 });
+  if (!business_id || !customer_id || serviceIds.length === 0 || !startsAt) {
+    return NextResponse.json({ error: "Business, customer, at least one service and a start time are required." }, { status: 400 });
   }
   const start = new Date(startsAt);
   if (Number.isNaN(start.getTime())) {
@@ -43,8 +47,13 @@ export async function POST(req: NextRequest) {
   if (!business || !customer) {
     return NextResponse.json({ error: "Business or customer not found." }, { status: 404 });
   }
-  const service = services.find((s) => s.id === service_id);
-  const serviceName = service?.name ?? "Appointment";
+  const chosen = serviceIds.map((id) => services.find((s) => s.id === id)).filter(Boolean) as typeof services;
+  const serviceName = chosen.length ? chosen.map((s) => s.name).join(", ") : "Appointment";
+  // Total appointment length is the sum of selected services (fallback to provided value or 45).
+  const duration_min = chosen.length
+    ? chosen.reduce((a, s) => a + (s.duration_min || 0), 0)
+    : Number(body.duration_min ?? 45) || 45;
+  const service_id = serviceIds.join(",");
 
   const booking = await createBooking({
     business_id, customer_id, customer_name: customer.full_name, service_id,
@@ -52,7 +61,7 @@ export async function POST(req: NextRequest) {
   });
 
   // Build calendar assets.
-  const title = `${serviceName} — ${business.business_name}`;
+  const title = `${serviceName} - ${business.business_name}`;
   const details = `Your ${serviceName} at ${business.business_name}. Booking: ${business.booking_url}`;
   const location = business.business_name;
   const ics = buildIcs({
@@ -71,7 +80,7 @@ export async function POST(req: NextRequest) {
   if (customer.email) {
     const res = await sendEmail({
       to: customer.email,
-      subject: `Your booking at ${business.business_name} — ${timeLabel(start.toISOString())}`,
+      subject: `Your booking at ${business.business_name} - ${timeLabel(start.toISOString())}`,
       html: bookingEmailHtml({
         customerName: customer.full_name, salon: business.business_name,
         service: serviceName, whenText: timeLabel(start.toISOString()),

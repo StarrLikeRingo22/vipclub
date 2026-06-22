@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { businessStats } from "@/lib/db";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isDbConfigured } from "@/lib/sql";
 import { isTwilioConfigured } from "@/lib/sms";
 import { requireRole } from "@/lib/session";
 
@@ -31,7 +31,7 @@ export async function GET() {
     businesses: stats,
     totals,
     backend: {
-      database: isSupabaseConfigured ? "supabase" : "in-memory (demo)",
+      database: isDbConfigured ? "neon (postgres)" : "in-memory (demo)",
       sms: isTwilioConfigured ? "twilio" : "mock (console)",
     },
   });
