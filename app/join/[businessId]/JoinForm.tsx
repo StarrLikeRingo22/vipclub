@@ -6,12 +6,14 @@ import { useRouter } from "next/navigation";
 export function JoinForm({
   businessId,
   businessName,
+  initialReferral = "",
 }: {
   businessId: string;
   businessName: string;
+  initialReferral?: string;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(Boolean(initialReferral));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
@@ -19,7 +21,7 @@ export function JoinForm({
     phone: "",
     email: "",
     birthday: "",
-    referral_code: "",
+    referral_code: initialReferral,
     consent_sms: true,
   });
 

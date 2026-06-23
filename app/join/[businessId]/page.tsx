@@ -5,8 +5,10 @@ import { notFound } from "next/navigation";
 
 export default async function JoinPage({
   params,
+  searchParams,
 }: {
   params: { businessId: string };
+  searchParams: { ref?: string };
 }) {
   const business = await getBusiness(params.businessId);
   if (!business) notFound();
@@ -25,7 +27,7 @@ export default async function JoinPage({
               {business.business_name} · Become a member to earn rewards, get appointment
               reminders, and unlock member-only offers.
             </p>
-            <JoinForm businessId={business.id} businessName={business.business_name} />
+            <JoinForm businessId={business.id} businessName={business.business_name} initialReferral={searchParams.ref ?? ""} />
           </div>
         </div>
       </div>

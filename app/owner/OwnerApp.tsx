@@ -62,6 +62,8 @@ export function OwnerApp({ businessId, user }: { businessId: string; user: { nam
   }, [businessId]);
 
   useEffect(() => { load(); }, [load]);
+  // Re-pull fresh data when opening the lists, so new sign-ups appear without a full refresh.
+  useEffect(() => { if (section === "clients" || section === "dashboard") load(); }, [section, load]);
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(""), 3200); };
 
   async function logout() {
@@ -137,7 +139,7 @@ export function OwnerApp({ businessId, user }: { businessId: string; user: { nam
           <Nav />
         </div>
 
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">
+        <main key={section} className="flex-1 px-4 py-6 sm:px-6 lg:px-8 fade-up">
           {section === "dashboard" && <Dashboard data={data} bookings={bookings} reminderDays={reminderDays} go={setSection} />}
           {section === "calendar" && <CalendarAgenda bookings={bookings} services={services} customers={customers} businessId={businessId} onChanged={(m) => { flash(m); load(); }} />}
           {section === "clients" && <Clients customers={customers} businessId={businessId} threshold={business.reward_threshold} onChanged={(m) => { flash(m); load(); }} />}
@@ -218,7 +220,7 @@ function Dashboard({ data, bookings, reminderDays, go }: { data: BizData; bookin
       <SectionHead title="Dashboard" subtitle={`Welcome back — here's how ${data.business.business_name} is performing.`} />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {cards.map(([label, val]) => (
-          <div key={label} className="rounded-2xl border border-line bg-white p-4">
+          <div key={label} className="rounded-2xl border border-line bg-white p-4 lift">
             <div className="text-2xl font-bold text-ink">{val}</div>
             <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">{label}</div>
           </div>
@@ -297,11 +299,11 @@ function Clients({ customers, businessId, threshold, onChanged }: { customers: C
   const list = customers.filter((c) => c.full_name.toLowerCase().includes(q.toLowerCase()) || c.phone.includes(q));
   return (
     <div>
-      <SectionHead title="Clients" subtitle={`${customers.length} total clients`} action={<PrimaryBtn onClick={() => setAdding(true)}>Add client</PrimaryBtn>} />
+      <SectionHead title="Clients" subtitle={`${customers.length} total clients`} action={<div className="flex gap-2"><button onClick={() => onChanged("Refreshed")} className="rounded-2xl border border-line bg-white px-4 py-3 text-sm font-bold text-ink-soft hover:bg-cream">Refresh</button><PrimaryBtn onClick={() => setAdding(true)}>Add client</PrimaryBtn></div>} />
       <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name or phone…"
         className="mb-3 w-full max-w-md rounded-xl border border-line bg-white px-4 py-2.5 text-[15px]" />
       <div className="overflow-hidden rounded-2xl border border-line bg-white">
-        {list.slice(0, 60).map((c) => (
+        {list.slice(0, 300).map((c) => (
           <a key={c.id} href={`/owner/client/${c.id}`} className="flex items-center gap-3 border-b border-line px-4 py-3 last:border-0 hover:bg-cream">
             <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ background: "#7A3E48" }}>
               {c.full_name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
@@ -310,7 +312,11 @@ function Clients({ customers, businessId, threshold, onChanged }: { customers: C
             {c.reward_status === "ready" && <span className="rounded-full bg-[#D9EDE4] px-2.5 py-1 text-[11px] font-bold text-[#3c7a62]">Reward ready</span>}
           </a>
         ))}
-        {list.length === 0 && <Empty>No clients match your search.</Empty>}
+        {list.length === 0 && (
+          <Empty>{customers.length === 0
+            ? "No clients yet. Share your sign-up QR code (in the sidebar) or add your first client to get started."
+            : "No clients match your search."}</Empty>
+        )}
       </div>
       {adding && <AddClientModal businessId={businessId} onClose={() => setAdding(false)} onAdded={(m) => { setAdding(false); onChanged(m); }} />}
     </div>
@@ -597,7 +603,7 @@ function Analytics({ customers, bookings, services, metrics, reminderDays }: {
       <SectionHead title="Analytics" subtitle="Retention and growth at a glance." />
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {cards.map(([l, v]) => (
-          <div key={l} className="rounded-2xl border border-line bg-white p-4"><div className="text-2xl font-bold text-ink">{v}</div><div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">{l}</div></div>
+          <div key={l} className="rounded-2xl border border-line bg-white p-4 lift"><div className="text-2xl font-bold text-ink">{v}</div><div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-ink-soft">{l}</div></div>
         ))}
       </div>
       <div className="mt-5">
@@ -697,7 +703,7 @@ function PrimaryBtn({ children, onClick, disabled, full }: { children: React.Rea
 function Modal({ title, children, onClose }: { title: string; children: React.ReactNode; onClose: () => void }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/45 p-0 sm:items-center sm:p-4" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="w-full max-w-md rounded-t-3xl bg-white p-5 pb-6 sm:rounded-3xl">
+      <div className="w-full max-w-md rounded-t-3xl bg-white p-5 pb-6 sheet sm:rounded-3xl">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="font-serif text-xl font-bold">{title}</h3>
           <button onClick={onClose} className="rounded-full border border-line bg-white px-3 py-1 text-xs font-bold text-ink-soft">Close</button>

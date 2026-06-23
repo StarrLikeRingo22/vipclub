@@ -23,7 +23,7 @@ export async function getCustomerByPhone(businessId: string, phone: string): Pro
 
 export async function updateCustomer(
   id: string,
-  patch: Partial<Pick<Customer, "notes" | "status" | "consent_sms">>,
+  patch: Partial<Pick<Customer, "notes" | "status" | "consent_sms" | "referred_by">>,
 ): Promise<Customer | null> {
   if (useDb) {
     try {

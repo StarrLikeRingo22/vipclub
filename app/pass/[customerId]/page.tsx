@@ -24,6 +24,7 @@ export default async function PassPage({
   const qr = await qrSvg(checkinUrl);
 
   const welcome = searchParams.welcome === "1";
+  const referralLink = `${baseUrl()}/join/${customer.business_id}?ref=${customer.customer_code}`;
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-4 py-10">
@@ -79,6 +80,9 @@ export default async function PassPage({
               <div className="text-sm font-extrabold text-rose-deep">{customer.customer_code}</div>
             </div>
           </div>
+          <a href={referralLink} className="mt-2 block rounded-2xl border border-line bg-white px-4 py-3 text-center text-xs font-bold text-rose-deep">
+            Share your invite link &rarr;
+          </a>
 
           <p className="mx-auto mt-4 max-w-[280px] text-center text-xs text-ink-soft">
             You can&apos;t change your own points — only the salon can, by scanning. Keeps it

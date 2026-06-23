@@ -21,10 +21,36 @@ export function SettingsClient({
   joinQr: string;
 }) {
   const [staff, setStaff] = useState(initialStaff);
+  const [menu, setMenu] = useState<SvcRow[]>(services);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [svc, setSvc] = useState({ name: "", category: "", price: "", duration_min: "30" });
+  const [svcMsg, setSvcMsg] = useState("");
+  const [svcBusy, setSvcBusy] = useState(false);
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  async function addService(e: React.FormEvent) {
+    e.preventDefault();
+    setSvcMsg(""); setSvcBusy(true);
+    try {
+      const res = await fetch("/api/services", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: svc.name, category: svc.category || "Other",
+          price: Number(svc.price) || 0, duration_min: Number(svc.duration_min) || 30,
+        }),
+      });
+      const d = await res.json();
+      if (!res.ok) throw new Error(d.error || "Failed");
+      const s = d.service as SvcRow;
+      setMenu((m) => [...m, { name: s.name, category: s.category, price: s.price, duration_min: s.duration_min }]);
+      setSvc({ name: "", category: "", price: "", duration_min: "30" });
+      setSvcMsg("Service added.");
+    } catch (err) {
+      setSvcMsg(err instanceof Error ? err.message : "Failed");
+    } finally { setSvcBusy(false); }
+  }
 
   async function addStaff(e: React.FormEvent) {
     e.preventDefault();
@@ -50,7 +76,7 @@ export function SettingsClient({
 
   const card = "card-shadow rounded-2xl border border-line bg-white p-5";
   const field = "w-full rounded-xl border-[1.5px] border-line bg-white px-4 py-2.5 text-[15px]";
-  const categories = [...new Set(services.map((s) => s.category))];
+  const categories = [...new Set(menu.map((s) => s.category))];
 
   return (
     <main className="mx-auto max-w-md px-4 py-8">
@@ -83,11 +109,12 @@ export function SettingsClient({
 
       <h3 className="mb-2 mt-6 font-serif text-base font-bold">Service menu</h3>
       <div className={card + " p-0"}>
+        {menu.length === 0 && <p className="px-5 py-4 text-sm text-ink-soft">No services yet. Add your first one below.</p>}
         {categories.map((cat) => (
           <div key={cat} className="border-b border-line last:border-0">
             <div className="px-5 pt-3 text-[11px] font-bold uppercase tracking-wide text-ink-soft">{cat}</div>
             <div className="divide-y divide-line">
-              {services.filter((s) => s.category === cat).map((s) => (
+              {menu.filter((s) => s.category === cat).map((s) => (
                 <div key={s.name} className="flex items-center justify-between px-5 py-2.5">
                   <span className="text-sm font-semibold">{s.name}<span className="ml-2 text-xs font-normal text-ink-soft">{s.duration_min} min</span></span>
                   <b className="text-rose-deep">${s.price}</b>
@@ -97,6 +124,29 @@ export function SettingsClient({
           </div>
         ))}
       </div>
+
+      <form onSubmit={addService} className={card + " mt-3"}>
+        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-ink-soft">Add a service</p>
+        <input className={field + " mb-2"} placeholder="Service name (e.g. Skin fade)" value={svc.name}
+          onChange={(e) => setSvc((s) => ({ ...s, name: e.target.value }))} />
+        <input className={field + " mb-2"} list="svc-cats" placeholder="Category (e.g. Haircuts)" value={svc.category}
+          onChange={(e) => setSvc((s) => ({ ...s, category: e.target.value }))} />
+        <datalist id="svc-cats">
+          {categories.map((c) => (
+            <option key={c} value={c}></option>
+          ))}
+        </datalist>
+        <div className="mb-3 grid grid-cols-2 gap-2">
+          <input className={field} type="number" min="0" placeholder="Price ($)" value={svc.price}
+            onChange={(e) => setSvc((s) => ({ ...s, price: e.target.value }))} />
+          <input className={field} type="number" min="5" step="5" placeholder="Minutes" value={svc.duration_min}
+            onChange={(e) => setSvc((s) => ({ ...s, duration_min: e.target.value }))} />
+        </div>
+        {svcMsg && <p className="mb-2 text-sm font-semibold text-rose-deep">{svcMsg}</p>}
+        <button disabled={svcBusy} className="btn-primary w-full rounded-xl px-4 py-3 text-sm font-bold disabled:opacity-60">
+          {svcBusy ? "Adding..." : "Add service"}
+        </button>
+      </form>
 
       <h3 className="mb-2 mt-6 font-serif text-base font-bold">Staff</h3>
       <div className={card + " divide-y divide-line p-0"}>

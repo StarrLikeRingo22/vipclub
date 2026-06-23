@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createCustomer, getBusiness, getCustomer, addVisit, recordMessage, listCustomers } from "@/lib/db";
+import { createCustomer, getBusiness, addVisit, recordMessage, listCustomers } from "@/lib/db";
 import { getCustomerByPhone, updateCustomer } from "@/lib/clients";
 import { sendSms, welcomeMessage } from "@/lib/sms";
 import { baseUrl } from "@/lib/util";
@@ -55,10 +55,10 @@ export async function POST(req: NextRequest) {
         (c) => c.customer_code.toLowerCase() === referral_code.toLowerCase() && c.id !== customer.id,
       );
       if (referrer) {
-        await addVisit(referrer.id, "Referral bonus", 0);
-        await updateCustomer(customer.id, {});
-        const refreshed = await getCustomer(customer.id);
-        if (refreshed) refreshed.referred_by = referrer.id;
+        // Persist the referral link on the new client (best effort).
+        try { await updateCustomer(customer.id, { referred_by: referrer.id }); } catch { /* keep signup working */ }
+        // Reward the referrer (best effort — never block the signup).
+        try { await addVisit(referrer.id, "Referral bonus", 0); } catch { /* keep signup working */ }
       }
     }
 

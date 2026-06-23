@@ -54,7 +54,7 @@ export default async function Home() {
       <main>
         <section className="relative overflow-hidden">
           <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(circle at 50% -10%, #F3EAE6 0%, transparent 60%)" }} />
-          <div className="relative mx-auto max-w-4xl px-5 pb-16 pt-20 text-center sm:pt-28">
+          <div className="relative mx-auto max-w-4xl px-5 pb-16 pt-20 text-center sm:pt-28 fade-up">
             <p className="mb-5 inline-block rounded-full border border-line bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-[2px] text-ink-soft">
               Client Management &amp; Retention Platform
             </p>
@@ -84,7 +84,7 @@ export default async function Home() {
             <p className="mt-2 max-w-2xl text-ink-soft">Seven modules, one platform. Replace the spreadsheets, sticky notes, and separate reminder apps.</p>
             <div className="mt-9 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {PILLARS.map(({ Icon, title, desc }) => (
-                <div key={title} className="rounded-2xl border border-line bg-cream/40 p-6">
+                <div key={title} className="rounded-2xl border border-line bg-cream/40 p-6 lift">
                   <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white text-rose-deep shadow-sm">
                     <Icon width={22} height={22} />
                   </div>
@@ -101,7 +101,7 @@ export default async function Home() {
             <h2 className="font-serif text-2xl font-bold sm:text-3xl">Built for every role</h2>
             <div className="mt-8 grid gap-4 sm:grid-cols-3">
               {access.map((a) => (
-                <div key={a.title} className="flex flex-col rounded-2xl border border-line bg-white p-6">
+                <div key={a.title} className="flex flex-col rounded-2xl border border-line bg-white p-6 lift">
                   <h3 className="text-lg font-bold">{a.title}</h3>
                   <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-soft">{a.desc}</p>
                   <Link href={a.href} className="mt-4 inline-flex items-center gap-1 text-sm font-bold text-rose-deep">

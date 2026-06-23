@@ -122,3 +122,61 @@ export const seedBookings: Booking[] = [
   { id: "bk_5", business_id: DEMO_BUSINESS_ID, customer_id: "cus_nadia", customer_name: "Nadia Park", service_id: "svc_lashfill", time_label: "2:30 PM", status: "scheduled", created_at: iso(0) },
   { id: "bk_6", business_id: DEMO_BUSINESS_ID, customer_id: "cus_amara", customer_name: "Amara Lewis", service_id: "svc_pedi", time_label: "4:00 PM", status: "scheduled", created_at: iso(0) },
 ];
+
+// Starter service menus for a newly-created business, grounded in real Toronto
+// salon/barbershop pricing (CAD). Picked by business type so a new shop is
+// usable immediately. (id/business_id are added by the caller.)
+export interface StarterService { category: string; name: string; price: number; duration_min: number }
+
+const BARBER_MENU: StarterService[] = [
+  { category: "Haircuts", name: "Skin Fade", price: 45, duration_min: 45 },
+  { category: "Haircuts", name: "Taper Fade", price: 42, duration_min: 40 },
+  { category: "Haircuts", name: "Classic Haircut", price: 40, duration_min: 30 },
+  { category: "Haircuts", name: "Scissor Cut", price: 42, duration_min: 40 },
+  { category: "Haircuts", name: "Buzz Cut", price: 30, duration_min: 20 },
+  { category: "Haircuts", name: "Kids' Cut (under 12)", price: 28, duration_min: 30 },
+  { category: "Haircuts", name: "Senior Cut", price: 32, duration_min: 30 },
+  { category: "Beard", name: "Cut & Beard", price: 55, duration_min: 50 },
+  { category: "Beard", name: "Beard Trim", price: 25, duration_min: 20 },
+  { category: "Beard", name: "Beard Sculpt & Hot Towel", price: 35, duration_min: 30 },
+  { category: "Shave", name: "Hot Towel Straight Razor Shave", price: 40, duration_min: 35 },
+  { category: "Shave", name: "Head Shave", price: 40, duration_min: 30 },
+  { category: "Grooming", name: "Lineup / Edge-up", price: 25, duration_min: 15 },
+  { category: "Grooming", name: "Grey Blending", price: 40, duration_min: 30 },
+  { category: "Grooming", name: "Wash & Style", price: 20, duration_min: 20 },
+];
+
+const SALON_MENU: StarterService[] = [
+  { category: "Hair", name: "Women's Haircut", price: 65, duration_min: 60 },
+  { category: "Hair", name: "Men's Haircut", price: 45, duration_min: 45 },
+  { category: "Hair", name: "Kids' Haircut", price: 30, duration_min: 30 },
+  { category: "Hair", name: "Blowout & Style", price: 55, duration_min: 45 },
+  { category: "Hair", name: "Updo / Event Styling", price: 95, duration_min: 60 },
+  { category: "Hair", name: "Deep Conditioning Treatment", price: 45, duration_min: 30 },
+  { category: "Hair", name: "Olaplex Treatment", price: 50, duration_min: 30 },
+  { category: "Hair", name: "Keratin Smoothing", price: 220, duration_min: 150 },
+  { category: "Color", name: "Root Touch-Up", price: 95, duration_min: 90 },
+  { category: "Color", name: "All-Over Color", price: 120, duration_min: 120 },
+  { category: "Color", name: "Partial Highlights", price: 130, duration_min: 120 },
+  { category: "Color", name: "Full Highlights", price: 180, duration_min: 150 },
+  { category: "Color", name: "Balayage", price: 250, duration_min: 180 },
+  { category: "Color", name: "Toner / Gloss", price: 55, duration_min: 45 },
+  { category: "Nails", name: "Classic Manicure", price: 30, duration_min: 30 },
+  { category: "Nails", name: "Gel Manicure", price: 50, duration_min: 45 },
+  { category: "Nails", name: "Classic Pedicure", price: 50, duration_min: 45 },
+  { category: "Nails", name: "Spa Pedicure", price: 70, duration_min: 60 },
+  { category: "Nails", name: "Acrylic Full Set", price: 70, duration_min: 75 },
+  { category: "Brows & Lashes", name: "Eyebrow Shaping", price: 25, duration_min: 20 },
+  { category: "Brows & Lashes", name: "Brow Tint", price: 30, duration_min: 25 },
+  { category: "Brows & Lashes", name: "Brow Lamination", price: 75, duration_min: 45 },
+  { category: "Brows & Lashes", name: "Lash Lift & Tint", price: 95, duration_min: 60 },
+  { category: "Brows & Lashes", name: "Lash Full Set", price: 140, duration_min: 120 },
+  { category: "Brows & Lashes", name: "Lash Fill", price: 70, duration_min: 60 },
+  { category: "Skin & Waxing", name: "Express Facial", price: 80, duration_min: 45 },
+  { category: "Skin & Waxing", name: "Lip / Chin Wax", price: 15, duration_min: 10 },
+  { category: "Skin & Waxing", name: "Full Face Wax", price: 45, duration_min: 30 },
+];
+
+export function starterServices(businessType: string): StarterService[] {
+  return /barber|barbershop/i.test(businessType) ? BARBER_MENU : SALON_MENU;
+}

@@ -41,6 +41,28 @@ export async function listBusinesses(): Promise<Business[]> {
   );
 }
 
+export async function createBusiness(input: {
+  business_name: string; business_type: string;
+  reward_threshold?: number; default_reminder_days?: number; booking_url?: string;
+}): Promise<Business> {
+  const biz: Business = {
+    id: uid("biz_"),
+    business_name: input.business_name.trim(),
+    business_type: input.business_type.trim() || "Salon",
+    booking_url: input.booking_url ?? "",
+    reward_threshold: input.reward_threshold ?? 5,
+    default_reminder_days: input.default_reminder_days ?? 35,
+    twilio_number: null,
+    created_at: nowIso(),
+  };
+  if (useDb) {
+    try { return await dbInsert<Business>("businesses", biz); }
+    catch (e) { throw dbWriteError(e); }
+  }
+  mem().businesses.push(biz);
+  return biz;
+}
+
 // ── Services ────────────────────────────────────────────────────
 
 export async function listServices(businessId: string): Promise<Service[]> {
@@ -48,6 +70,29 @@ export async function listServices(businessId: string): Promise<Service[]> {
     () => dbQuery<Service>("select * from services where business_id = $1 order by name", [businessId]),
     () => mem().services.filter((s) => s.business_id === businessId),
   );
+}
+
+export async function createService(input: {
+  business_id: string; category: string; name: string; price: number; duration_min: number;
+}): Promise<Service> {
+  const svc: Service = {
+    id: uid("svc_"),
+    business_id: input.business_id,
+    category: input.category.trim() || "Other",
+    name: input.name.trim(),
+    price: Number(input.price) || 0,
+    duration_min: Number(input.duration_min) || 30,
+  };
+  if (useDb) {
+    try { return await dbInsert<Service>("services", svc); }
+    catch (e) { throw dbWriteError(e); }
+  }
+  mem().services.push(svc);
+  return svc;
+}
+
+export async function createServices(rows: Array<{ business_id: string; category: string; name: string; price: number; duration_min: number }>): Promise<void> {
+  for (const r of rows) { try { await createService(r); } catch { /* best effort for starter menu */ } }
 }
 
 // ── Customers ───────────────────────────────────────────────────

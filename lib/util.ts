@@ -23,10 +23,23 @@ export function daysAgo(iso: string | null): number | null {
   return Math.floor((Date.now() - then) / (1000 * 60 * 60 * 24));
 }
 
+// Public base URL used to build QR codes, pass links, and calendar invites.
+// Always resolves to the live site in production (never localhost), so a QR
+// printed for the front desk leads to the real website.
+const PROD_FALLBACK = "https://vipclub-six-navy.vercel.app";
+
 export function baseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "") ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "") ||
-    "http://localhost:3000"
-  );
+  const env = process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "");
+  // Honour an explicit public URL, but never a localhost value in production.
+  if (env && !/localhost|127\.0\.0\.1/.test(env)) return env;
+
+  // Vercel exposes the canonical production domain on every deployment.
+  if (process.env.VERCEL_PROJECT_PRODUCTION_URL) {
+    return `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`;
+  }
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+
+  // Local development falls back to the localhost value if that's all we have.
+  if (env) return env;
+  return PROD_FALLBACK;
 }
