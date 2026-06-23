@@ -70,8 +70,8 @@ wired to a daily **Vercel Cron** in `vercel.json` and protected by `CRON_SECRET`
 
 Copy `.env.example` → `.env` and fill in keys.
 
-**Supabase (persistence):** create a project, run [`supabase/schema.sql`](supabase/schema.sql)
-**then** [`supabase/schema-auth.sql`](supabase/schema-auth.sql) in the SQL editor, then set
+**Supabase (persistence):** create a project, run [`db/schema.sql`](db/schema.sql)
+**then** [`db/schema.sql`](db/schema.sql) in the SQL editor, then set
 `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. The app detects the keys and uses Postgres
 automatically (users, bookings, referrals, reminders included).
 
