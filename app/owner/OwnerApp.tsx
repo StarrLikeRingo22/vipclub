@@ -14,10 +14,10 @@ import {
 
 type Section =
   | "dashboard" | "calendar" | "clients" | "appointments" | "messages"
-  | "rewards" | "referrals" | "analytics" | "staff" | "settings";
+  | "rewards" | "referrals" | "analytics" | "staff" | "signup" | "settings";
 
 interface Metrics { messagesSent: number; visitsLogged: number; revenueLogged: number; referrals: number; }
-interface BizData { business: Business; customers: Customer[]; services: Service[]; metrics: Metrics; }
+interface BizData { business: Business; customers: Customer[]; services: Service[]; metrics: Metrics; joinUrl: string; joinQr: string; }
 
 const NAV: { id: Section; label: string; Icon: typeof HomeIcon }[] = [
   { id: "dashboard", label: "Dashboard", Icon: HomeIcon },
@@ -29,6 +29,7 @@ const NAV: { id: Section; label: string; Icon: typeof HomeIcon }[] = [
   { id: "referrals", label: "Referrals", Icon: ShareIcon },
   { id: "analytics", label: "Analytics", Icon: ChartIcon },
   { id: "staff", label: "Staff", Icon: MembersIcon },
+  { id: "signup", label: "Sign-up QR", Icon: ScanIcon },
   { id: "settings", label: "Settings", Icon: CogIcon },
 ];
 
@@ -43,7 +44,7 @@ function sameMonth(iso: string | null | undefined): boolean {
 }
 const money = (n: number) => "$" + n.toLocaleString();
 
-export function OwnerApp({ businessId }: { businessId: string }) {
+export function OwnerApp({ businessId, user }: { businessId: string; user: { name: string; email: string; role: string } }) {
   const router = useRouter();
   const [section, setSection] = useState<Section>("dashboard");
   const [data, setData] = useState<BizData | null>(null);
@@ -82,7 +83,7 @@ export function OwnerApp({ businessId }: { businessId: string }) {
         return (
           <button key={id} onClick={() => { setSection(id); onPick?.(); }}
             className={"flex items-center gap-3 whitespace-nowrap rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors " +
-              (active ? "bg-rose-soft/60 text-rose-deep" : "text-ink-soft hover:bg-cream")}>
+              (active ? "bg-burgundy text-white" : "text-ink-soft hover:bg-cream")}>
             <Icon filled={active} width={20} height={20} />
             <span>{label}</span>
           </button>
@@ -95,15 +96,22 @@ export function OwnerApp({ businessId }: { businessId: string }) {
     <div className="min-h-screen lg:flex">
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-screen w-60 flex-shrink-0 flex-col border-r border-line bg-white px-3 py-5 lg:flex">
-        <div className="mb-6 flex items-center gap-2 px-2">
+        <Link href="/" className="mb-6 flex items-center gap-2 px-2">
           <Crest size={32} />
           <div>
             <p className="font-serif text-base font-bold leading-tight">VIP Club</p>
             <p className="text-[11px] text-ink-soft">{business.business_name}</p>
           </div>
-        </div>
+        </Link>
         <nav className="flex flex-1 flex-col gap-1"><Nav /></nav>
-        <button onClick={logout} className="mt-3 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-ink-soft hover:bg-cream">Sign out</button>
+        <div className="mt-3 border-t border-line pt-3">
+          <Link href="/" className="block rounded-xl px-3 py-2.5 text-sm font-semibold text-ink-soft hover:bg-cream">Home</Link>
+          <div className="px-3 pb-1 pt-2">
+            <p className="truncate text-sm font-bold text-ink">{user.name}</p>
+            <p className="truncate text-[11px] capitalize text-ink-soft">{user.email} · {user.role}</p>
+          </div>
+          <button onClick={logout} className="w-full rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-ink-soft hover:bg-cream">Sign out</button>
+        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -119,6 +127,7 @@ export function OwnerApp({ businessId }: { businessId: string }) {
               <ScanIcon width={16} height={16} /> Check in
             </button>
             <Link href="/owner/settings" className="hidden rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink-soft sm:block">Settings</Link>
+            <Link href="/" className="rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink-soft lg:hidden">Home</Link>
             <button onClick={logout} className="rounded-full border border-line bg-white px-3 py-1.5 text-xs font-bold text-ink-soft lg:hidden">Sign out</button>
           </div>
         </header>
@@ -150,6 +159,7 @@ export function OwnerApp({ businessId }: { businessId: string }) {
           {section === "referrals" && <Referrals customers={customers} />}
           {section === "analytics" && <Analytics customers={customers} bookings={bookings} services={services} metrics={metrics} reminderDays={reminderDays} />}
           {section === "staff" && <StaffSection />}
+          {section === "signup" && <SignupQR business={business} joinUrl={data.joinUrl} joinQr={data.joinQr} />}
           {section === "settings" && <SettingsSection business={business} />}
         </main>
       </div>
@@ -220,6 +230,7 @@ function Dashboard({ data, bookings, reminderDays, go }: { data: BizData; bookin
         <QuickAction onClick={() => go("appointments")} label="New appointment" />
         <QuickAction onClick={() => go("messages")} label="Send message" />
         <QuickAction onClick={() => go("staff")} label="Add staff" />
+        <QuickAction onClick={() => go("signup")} label="Sign-up QR" />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -292,7 +303,7 @@ function Clients({ customers, businessId, threshold, onChanged }: { customers: C
       <div className="overflow-hidden rounded-2xl border border-line bg-white">
         {list.slice(0, 60).map((c) => (
           <a key={c.id} href={`/owner/client/${c.id}`} className="flex items-center gap-3 border-b border-line px-4 py-3 last:border-0 hover:bg-cream">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ background: "linear-gradient(135deg,#E8A0A8,#C97B86)" }}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white" style={{ background: "#7A3E48" }}>
               {c.full_name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
             </div>
             <div className="flex-1"><b className="block text-sm">{c.full_name}</b><span className="text-xs text-ink-soft">{c.phone} · {c.points_balance}/{threshold} · {c.status}</span></div>
@@ -606,6 +617,27 @@ function StaffSection() {
       <Panel title="Roles">
         <div className="px-4 py-3 text-sm text-ink-soft">Owners manage everything. Staff can check clients in, log visits, add notes, and apply rewards — but can't see billing, exports, or platform settings. Add and edit staff from Settings.</div>
       </Panel>
+    </div>
+  );
+}
+
+function SignupQR({ business, joinUrl, joinQr }: { business: Business; joinUrl: string; joinQr: string }) {
+  const [copied, setCopied] = useState(false);
+  async function copy() { try { await navigator.clipboard.writeText(joinUrl); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* ignore */ } }
+  return (
+    <div>
+      <SectionHead title="Client sign-up QR" subtitle={`Print this and place it at your front desk. Scanning opens the branded join page for ${business.business_name}.`} />
+      <div className="max-w-md rounded-2xl border border-line bg-white p-6 text-center">
+        <div className="mx-auto h-56 w-56 rounded-2xl border border-line bg-white p-3" dangerouslySetInnerHTML={{ __html: joinQr }} />
+        <div className="mt-4 flex items-center gap-2">
+          <input readOnly value={joinUrl} className="flex-1 truncate rounded-xl border border-line bg-cream px-3 py-2 text-xs text-ink-soft" />
+          <button onClick={copy} className="btn-primary rounded-xl px-3 py-2 text-xs font-bold">{copied ? "Copied" : "Copy"}</button>
+        </div>
+        <div className="mt-3 flex justify-center gap-4 text-xs font-bold">
+          <a href={joinUrl} target="_blank" rel="noreferrer" className="text-rose-deep">Open join page</a>
+          <button onClick={() => window.print()} className="text-ink-soft">Print</button>
+        </div>
+      </div>
     </div>
   );
 }

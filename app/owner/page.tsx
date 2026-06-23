@@ -11,5 +11,5 @@ export default async function OwnerPage() {
   // Load the signed-in owner/staff member's own business. Admins (no business)
   // fall back to the demo business.
   const businessId = session.businessId ?? DEMO_BUSINESS_ID;
-  return <OwnerApp businessId={businessId} />;
+  return <OwnerApp businessId={businessId} user={{ name: session.name, email: session.email, role: session.role }} />;
 }

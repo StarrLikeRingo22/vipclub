@@ -8,30 +8,35 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Rose gold accent
         rose: {
-          DEFAULT: "#E8A0A8",
-          deep: "#C97B86",
-          soft: "#F7DCE0",
+          DEFAULT: "#B76E79",
+          deep: "#B76E79",   // accent text/links/prices (rose gold)
+          soft: "#F0E2E3",   // subtle rose tint for selected rows
         },
-        blush: "#FBEEF0",
+        burgundy: "#7A3E48", // active sidebar / selected states
+        blush: "#F3EAE6",
+        // Warning amber
         gold: {
-          DEFAULT: "#C9A24B",
-          soft: "#E8D29A",
+          DEFAULT: "#C58A2B",
+          soft: "#E7D2A6",
         },
+        // Charcoal text
         ink: {
-          DEFAULT: "#3A2C30",
-          soft: "#8A7A7E",
-          deep: "#221A1E",
+          DEFAULT: "#1C1C1C",
+          soft: "#6F6A64",
+          deep: "#000000",
         },
-        cream: "#FFF8F7",
-        line: "#EFE3E5",
-        leaf: "#5BA88A",
+        cream: "#FAF7F2",     // warm ivory background
+        line: "#ECE6DD",      // warm light border
+        leaf: "#2F7D5C",      // success / completed / redeemed
+        danger: "#B42318",    // errors / no-shows
       },
       fontFamily: {
         serif: ["Georgia", "Times New Roman", "serif"],
       },
       boxShadow: {
-        card: "0 10px 30px rgba(180,120,130,.16)",
+        card: "0 8px 24px rgba(28,28,28,.06)",
       },
     },
   },

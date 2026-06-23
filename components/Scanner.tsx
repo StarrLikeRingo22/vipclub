@@ -126,7 +126,7 @@ export function Scanner({ members }: { members: Customer[] }) {
           <a key={m.id} href={`/checkin/${m.id}`}
             className="flex items-center gap-3 border-b border-line py-3 last:border-0">
             <div className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
-              style={{ background: "linear-gradient(135deg,#E8A0A8,#C97B86)" }}>
+              style={{ background: "#7A3E48" }}>
               {m.full_name.split(" ").map((p) => p[0]).join("").slice(0, 2)}
             </div>
             <div className="flex-1">

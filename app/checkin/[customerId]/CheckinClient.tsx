@@ -64,7 +64,7 @@ export function CheckinClient({
           </div>
 
           <div className="card-shadow mt-2 rounded-3xl border border-line p-6 text-center"
-            style={{ background: "linear-gradient(160deg,#FFFFFF,#FFF4F5)" }}>
+            style={{ background: "linear-gradient(160deg,#FFFFFF,#FAF7F2)" }}>
             <h1 className="font-serif text-xl font-bold">{customer.full_name}</h1>
             <p className="text-sm text-ink-soft">
               {customer.phone} · #{customer.customer_code}

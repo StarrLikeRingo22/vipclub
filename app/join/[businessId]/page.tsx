@@ -16,7 +16,7 @@ export default async function JoinPage({
       <div className="phone">
         <div className="screen flex min-h-[760px] flex-col">
           <div className="flex flex-1 flex-col items-center justify-center px-7 py-10 text-center"
-            style={{ background: "radial-gradient(circle at 50% 16%, #FCE6E9 0%, transparent 55%), linear-gradient(180deg,#FFF8F7,#FBEEF0)" }}>
+            style={{ background: "radial-gradient(circle at 50% 16%, #F3EAE6 0%, transparent 55%), linear-gradient(180deg,#FFFFFF,#FAF7F2)" }}>
             <Crest size={92} />
             <h1 className="mt-6 font-serif text-3xl font-extrabold leading-tight">
               Join the<br />VIP Club

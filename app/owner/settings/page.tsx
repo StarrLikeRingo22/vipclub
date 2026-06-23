@@ -3,6 +3,8 @@ import { getBusiness, listServices } from "@/lib/db";
 import { listStaff } from "@/lib/users";
 import { SettingsClient } from "./SettingsClient";
 import { redirect } from "next/navigation";
+import { qrSvg } from "@/lib/qr";
+import { baseUrl } from "@/lib/util";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +18,9 @@ export default async function SettingsPage() {
     businessId ? listStaff(businessId) : Promise.resolve([]),
   ]);
 
+  const joinUrl = businessId ? `${baseUrl()}/join/${businessId}` : "";
+  const joinQr = joinUrl ? await qrSvg(joinUrl) : "";
+
   return (
     <SettingsClient
       businessName={business?.business_name ?? "Your business"}
@@ -25,6 +30,8 @@ export default async function SettingsPage() {
       services={services.map((s) => ({ name: s.name, price: s.price, category: s.category, duration_min: s.duration_min }))}
       staff={staff.map((u) => ({ id: u.id, name: u.name, email: u.email, role: u.role }))}
       canManageStaff={session.role === "owner"}
+      joinUrl={joinUrl}
+      joinQr={joinQr}
     />
   );
 }

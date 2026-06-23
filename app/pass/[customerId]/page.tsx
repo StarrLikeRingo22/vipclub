@@ -43,7 +43,7 @@ export default async function PassPage({
           </div>
 
           <div className="card-shadow rounded-3xl border border-line p-6"
-            style={{ background: "linear-gradient(160deg,#FFFFFF,#FCEEF0)" }}>
+            style={{ background: "linear-gradient(160deg,#FFFFFF,#FAF7F2)" }}>
             <div className="mb-3 flex items-center justify-center gap-2">
               <Crest size={30} />
               <b className="font-serif text-base tracking-wide">VIP CLUB</b>

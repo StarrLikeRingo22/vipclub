@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Crest } from "@/components/Crest";
 import type { BusinessStats } from "@/lib/types";
 
@@ -23,8 +25,10 @@ interface Stats {
 type Sort = "returning" | "members" | "visits";
 
 export default function AdminPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [sort, setSort] = useState<Sort>("returning");
+  async function signOut() { try { await fetch("/api/auth/logout", { method: "POST" }); } catch { /* ignore */ } router.push("/"); router.refresh(); }
 
   useEffect(() => {
     fetch("/api/admin/stats").then((r) => r.json()).then(setStats);
@@ -66,8 +70,12 @@ export default function AdminPage() {
             <p className="text-[11px] font-semibold uppercase tracking-[2px] text-gold">Platform &amp; Product Owners</p>
           </div>
         </div>
-        <div className="rounded-xl border border-line bg-white px-3 py-2 text-[11px] text-ink-soft">
-          DB <b className="text-ink">{stats.backend.database}</b> · SMS <b className="text-ink">{stats.backend.sms}</b>
+        <div className="flex items-center gap-2">
+          <div className="hidden rounded-xl border border-line bg-white px-3 py-2 text-[11px] text-ink-soft sm:block">
+            DB <b className="text-ink">{stats.backend.database}</b> · SMS <b className="text-ink">{stats.backend.sms}</b>
+          </div>
+          <Link href="/" className="rounded-full border border-line bg-white px-3 py-2 text-xs font-bold text-ink-soft hover:text-ink">Home</Link>
+          <button onClick={signOut} className="rounded-full border border-line bg-white px-3 py-2 text-xs font-bold text-ink-soft hover:text-ink">Sign out</button>
         </div>
       </div>
 

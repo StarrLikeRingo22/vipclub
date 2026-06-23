@@ -67,7 +67,7 @@ export async function verifySession(token: string | undefined | null): Promise<S
 export function makeSession(u: { id: string; email: string; role: Role; business_id: string | null; name: string }): Session {
   return {
     sub: u.id, email: u.email, role: u.role, businessId: u.business_id,
-    name: u.name, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 14, // 14 days
+    name: u.name, exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
   };
 }
 

@@ -7,16 +7,13 @@
 }
 
 body {
-  background:
-    radial-gradient(circle at 18% 8%, #F5DDE0 0%, transparent 42%),
-    radial-gradient(circle at 86% 92%, #EFE0C6 0%, transparent 42%),
-    #F3E7E8;
+  background: #FAF7F2;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  color: #1C1C1C;
 }
 
-/* App shell - a real mobile-app surface centered inside the website.
-   No device bezel: full-bleed on phones, a tidy rounded column on desktop. */
+/* App shell — clean mobile-app surface centered inside the website. */
 .phone {
   width: 460px;
   max-width: 100%;
@@ -25,38 +22,34 @@ body {
   padding: 0;
 }
 .screen {
-  background: #fff8f7;
+  background: #FFFFFF;
   border-radius: 30px;
   overflow: hidden;
-  box-shadow: 0 24px 60px rgba(180, 120, 130, 0.18);
+  box-shadow: 0 16px 50px rgba(28, 28, 28, 0.10);
 }
 @media (max-width: 480px) {
-  .screen {
-    border-radius: 0;
-    box-shadow: none;
-  }
+  .screen { border-radius: 0; box-shadow: none; }
 }
 
+/* Charcoal for serious actions; rose gold reserved as an accent. */
 .btn-primary {
-  background: linear-gradient(135deg, #e8a0a8, #c97b86);
+  background: #1C1C1C;
   color: #fff;
-  box-shadow: 0 8px 20px rgba(201, 123, 134, 0.4);
+  box-shadow: 0 6px 16px rgba(28, 28, 28, 0.16);
 }
 .btn-gold {
-  background: linear-gradient(135deg, #d9b45f, #c9a24b);
+  background: #B76E79;
   color: #fff;
-  box-shadow: 0 8px 20px rgba(201, 162, 75, 0.4);
+  box-shadow: 0 6px 16px rgba(183, 110, 121, 0.28);
 }
 .card-shadow {
-  box-shadow: 0 10px 30px rgba(180, 120, 130, 0.16);
+  box-shadow: 0 8px 24px rgba(28, 28, 28, 0.06);
 }
 
 input:focus,
 textarea:focus {
   outline: none;
-  border-color: #e8a0a8 !important;
+  border-color: #B76E79 !important;
 }
 
-::-webkit-scrollbar {
-  width: 0;
-}
+::-webkit-scrollbar { width: 0; }

@@ -8,7 +8,7 @@ interface StaffMember { id: string; name: string; email: string; role: string }
 interface SvcRow { name: string; price: number; category: string; duration_min: number }
 
 export function SettingsClient({
-  businessName, rewardThreshold, reminderDays, bookingUrl, services, staff: initialStaff, canManageStaff,
+  businessName, rewardThreshold, reminderDays, bookingUrl, services, staff: initialStaff, canManageStaff, joinUrl, joinQr,
 }: {
   businessName: string;
   rewardThreshold: number;
@@ -17,11 +17,14 @@ export function SettingsClient({
   services: SvcRow[];
   staff: StaffMember[];
   canManageStaff: boolean;
+  joinUrl: string;
+  joinQr: string;
 }) {
   const [staff, setStaff] = useState(initialStaff);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [msg, setMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   async function addStaff(e: React.FormEvent) {
     e.preventDefault();
@@ -41,6 +44,10 @@ export function SettingsClient({
     } finally { setBusy(false); }
   }
 
+  async function copyLink() {
+    try { await navigator.clipboard.writeText(joinUrl); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { /* ignore */ }
+  }
+
   const card = "card-shadow rounded-2xl border border-line bg-white p-5";
   const field = "w-full rounded-xl border-[1.5px] border-line bg-white px-4 py-2.5 text-[15px]";
   const categories = [...new Set(services.map((s) => s.category))];
@@ -52,7 +59,20 @@ export function SettingsClient({
         <div className="flex items-center gap-2"><Crest size={26} /><b>Settings</b></div>
       </div>
 
-      <div className={card}>
+      {joinUrl && (
+        <div className={card + " text-center"}>
+          <h2 className="font-serif text-lg font-bold">Client sign-up QR</h2>
+          <p className="mt-1 text-sm text-ink-soft">Print this and place it at your front desk. Scanning opens your branded join page for {businessName} — new clients sign up in seconds.</p>
+          <div className="mx-auto mt-4 h-48 w-48 rounded-2xl border border-line bg-white p-3" dangerouslySetInnerHTML={{ __html: joinQr }} />
+          <div className="mt-3 flex items-center gap-2">
+            <input readOnly value={joinUrl} className="flex-1 truncate rounded-xl border border-line bg-cream px-3 py-2 text-xs text-ink-soft" />
+            <button onClick={copyLink} className="btn-primary rounded-xl px-3 py-2 text-xs font-bold">{copied ? "Copied" : "Copy"}</button>
+          </div>
+          <a href={joinUrl} target="_blank" rel="noreferrer" className="mt-2 inline-block text-xs font-bold text-rose-deep">Open join page &rarr;</a>
+        </div>
+      )}
+
+      <div className={card + " mt-4"}>
         <h2 className="font-serif text-lg font-bold">{businessName}</h2>
         <div className="mt-3 space-y-2 text-sm">
           <div className="flex justify-between border-b border-line pb-2"><span className="text-ink-soft">Reward rule</span><b>{rewardThreshold} visits = 1 reward</b></div>

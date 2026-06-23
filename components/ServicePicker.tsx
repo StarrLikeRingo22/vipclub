@@ -24,7 +24,7 @@ export function ServicePicker({
             const on = selected.has(s.id);
             return (
               <button key={s.id} type="button" onClick={() => toggle(s.id)}
-                className={"mb-1.5 flex w-full items-center gap-3 rounded-xl border-[1.5px] p-3 text-left " + (on ? "border-rose-deep bg-[#FFF5F6]" : "border-line")}>
+                className={"mb-1.5 flex w-full items-center gap-3 rounded-xl border-[1.5px] p-3 text-left " + (on ? "border-rose bg-rose-soft" : "border-line")}>
                 <span className={"flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border-[1.5px] " + (on ? "border-rose-deep bg-rose-deep text-white" : "border-line")}>
                   {on && <CheckIcon width={12} height={12} />}
                 </span>
